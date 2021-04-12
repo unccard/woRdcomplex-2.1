@@ -10,6 +10,16 @@ ppa<-{}
 library(tidyr)
 library(tidytext)
 library(stringr)
+
+# list for each important category 
+engl_voiced_cons <- list(c())
+engl_voiceless_cons <- list(c())
+engl_fricatives <- list(c())
+engl_affricates <- list(c())
+engl_velars <- list(c())
+engl_liquids <- list(c())
+engl_rhotic_vowels <- list(c())
+
 phonetic<-tibble()
 stress<-tibble()
 mrc<-read.csv('mrc2.csv', na.strings=c("", "NA"))
@@ -30,7 +40,7 @@ for (fileName in fileNames){
   tibbletest <-tibble(mrc$word, mrc$phon) #looks like setting up a variable that includes only the word and phon columns from MRC
   #stresstest<-tibble(mrc$word, mrc$stress)
   tibbletest <- na.omit(tibbletest) #na.omit gets rid of cases where the value is na
-  concrete <-na.omit(tibble(mrc$word, mrc$conc)) # this creates a variable of concreteness
+  concrete <-na.omit(tibble(mrc$word, mrc$conc)) # this creates a variable of concreteness which does not produce any output
   
   tibbletest <- na.omit(tibbletest) # i don't understand how this is different from two lines above.
   
@@ -62,6 +72,40 @@ for (fileName in fileNames){
   points<-0
   #phonetic<-phonetic$c......wel....De.....Iz....eI....m.n....De.....wID...........
   for (j in 1:nrow(phonetic)){
+    
+    
+    # BEGIN PSEUDOCODE of new solution 
+    
+    if(polysyll == 1) points=points+1  #word patterns (1)
+    if(nonInitialPrimaryStress == 1) points=points+1  #word patterns (2)
+    if(word[len-1] in engl_voiced_cons, engl_voiceless_cons) points=points+1  #syllable structures (1)
+    
+    # for loop to find consonant clusters and sound classes 
+    int len = length of word 
+    for(int i = 0; i < len; i++) {
+      if(word[i] in engl_voiced_cons or in engl_voiceless_cons) {
+        int j = i
+        boolean is_cluster = false 
+        while j < len {
+          if (word[j+1] in engl_voiced_cons or engl_voiceless_cons) j++, is_cluster = true
+          else break
+        }
+        if(is_cluster) then points=points+1  #syllable structures (2)
+      }
+      if word[i] in velar then points=points+1  #sound classes (1)
+      if word[i] in liquid then points=points+1  #sound classes (2)
+      if word[i] in syllabic_liquid then points=points+1  #sound classes (2)
+      if word[i] in rhotic_vowel then points=points+1  #sound classes (2)
+      if word[i] in engl_fricatives or engl_affricates then points=points+1  #sound classes (3)
+      if word[i] in (engl_fricatives or engl_affricates) and (engl_voiced_cons) then points=points+1  #sound classes (4)
+    }
+    
+    # END PSEUDOCODE of new solution 
+    
+    
+    
+    # BELOW is the points system implemented in version 1.1
+    
     #if more than 1 syllalbe, add 1 point- 
     
     #AJ: actually we should be adding a point if more than (> 2 syllables)- Lindsey how do we modify? I think this code is saying if there is one slash, that means we have two syllables. I think N slashes corresponds to N-1 syllables. so we need to say > 1, so only words with 3 or more syllables get this. 
