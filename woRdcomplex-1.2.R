@@ -76,12 +76,12 @@ for (fileName in fileNames){
     
     # BEGIN PSEUDOCODE of new solution 
     
+    int len = length of word 
     if(polysyll == 1) points=points+1  #word patterns (1)
     if(nonInitialPrimaryStress == 1) points=points+1  #word patterns (2)
     if(word[len-1] in engl_voiced_cons, engl_voiceless_cons) points=points+1  #syllable structures (1)
     
     # for loop to find consonant clusters and sound classes 
-    int len = length of word 
     for(int i = 0; i < len; i++) {
       if(word[i] in engl_voiced_cons or in engl_voiceless_cons) {
         int j = i
@@ -95,10 +95,12 @@ for (fileName in fileNames){
       if word[i] in velar then points=points+1  #sound classes (1)
       if word[i] in liquid then points=points+1  #sound classes (2)
       if word[i] in syllabic_liquid then points=points+1  #sound classes (2)
-      if word[i] in rhotic_vowel then points=points+1  #sound classes (2)
       if word[i] in engl_fricatives or engl_affricates then points=points+1  #sound classes (3)
       if word[i] in (engl_fricatives or engl_affricates) and (engl_voiced_cons) then points=points+1  #sound classes (4)
     }
+    
+    points=points+str_count(phonetic[j,], "X-R")  #sound classes (2), rhotic vowels
+    #rhotic is outside of for loop because it is more than one character 
     
     # END PSEUDOCODE of new solution 
     
@@ -106,7 +108,7 @@ for (fileName in fileNames){
     
     # BELOW is the points system implemented in version 1.1
     
-    #if more than 1 syllalbe, add 1 point- 
+    #if more than 1 syllable, add 1 point- 
     
     #AJ: actually we should be adding a point if more than (> 2 syllables)- Lindsey how do we modify? I think this code is saying if there is one slash, that means we have two syllables. I think N slashes corresponds to N-1 syllables. so we need to say > 1, so only words with 3 or more syllables get this. 
     
