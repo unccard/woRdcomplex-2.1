@@ -60,48 +60,45 @@ for (fileName in fileNames){
     phonetic<-as.data.frame(phonetic, stringsAsFactors=FALSE) #makes this into a dataframe
     
     tibbletest$`mrc$phon`[30407]
-    points<-0
-    #phonetic<-phonetic$c......wel....De.....Iz....eI....m.n....De.....wID...........
+    points<-0  # QUESTION are we calculating points for individual word or whole transcript? 
     for (word in 1:nrow(phonetic)){
       
       # BEGIN PSEUDOCODE of new solution 
       
-      len<-str_length(word) #length of word which will be used to iterate through its chars
-      if(polysyll == 1) points=points+1  #word patterns (1)
-      if(nonInitialPrimaryStress == 1) points=points+1  #word patterns (2)
+      len<-str_length(word) #length of word, used to iterate through its chars
+      if (polysyll == 1) points=points+1  #word patterns (1)
+      if (nonInitialPrimaryStress == 1) points=points+1  #word patterns (2)
+      points=points+str_count(phonetic[j,], "X-R")  #sound classes (2), rhotic vowels
       
       # for loop to find consonant clusters and sound classes 
-      for(index in 0:len-1) {
-        if(index == len-1) {
-          if(list_search(word_index, engl_voiced_cons) | list_search(word[index], engl_voiceless_cons)) {
+      for (index in 0:len-1) {
+        if (index == len-1) {
+          if (list_search(word_index, engl_voiced_cons) | list_search(word[index], engl_voiceless_cons)) {
             points=points+1  #syllable structures (1)
           }
         }
-        if(list_search(word[index], engl_voiced_cons) | list_search(word[index], engl_voiceless_cons)) {
+        if (list_search(word[index], engl_voiced_cons) | list_search(word[index], engl_voiceless_cons)) {
           j <- index
           is_cluster <- FALSE 
-          while j < len {
-            if (word[j+1] in engl_voiced_cons or engl_voiceless_cons) {
+          while (j < len-1) {
+            if (list_search(word[j+1], engl_voiced_cons) | list_search(word[j+1], engl_voiceless_cons)) {
               j=j+1
               is_cluster <- TRUE
-            }
+            } 
             else break
           }
-          if(is_cluster) then points=points+1  #syllable structures (2)
+          if (is_cluster) points=points+1  #syllable structures (2)
         }
-        if(list_search(word[index], engl_velars)) points=points+1  #sound classes (1)
-        if(list_search(word[index], engl_liquids)) points=points+1  #sound classes (2)
+        if (list_search(word[index], engl_velars)) points=points+1  #sound classes (1)
+        if (list_search(word[index], engl_liquids)) points=points+1  #sound classes (2)
         #if word[i] in syllabic_liquid then points=points+1  #sound classes (2)
-        if(list_search(word[index], engl_fricatives) | list_search(word[index], engl_affricates)) {
+        if (list_search(word[index], engl_fricatives) | list_search(word[index], engl_affricates)) {
           points=points+1  #sound classes (3)
-          if(list_search(word[index], engl_voiced_cons)) {
+          if (list_search(word[index], engl_voiced_cons)) {
             points=points+1  #sound classes (4)
           }
         }
       }
-      
-      points=points+str_count(phonetic[j,], "X-R")  #sound classes (2), rhotic vowels
-      #rhotic is outside of for loop because it is more than one character 
       
       # END PSEUDOCODE of new solution 
       
