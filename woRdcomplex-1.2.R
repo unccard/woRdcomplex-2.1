@@ -12,13 +12,13 @@ library(tidytext)
 library(stringr)
 
 # list for each important category 
-engl_voiced_cons <- list(c())
-engl_voiceless_cons <- list(c())
-engl_fricatives <- list(c())
-engl_affricates <- list(c())
-engl_velars <- list(c())
-engl_liquids <- list(c())
-engl_rhotic_vowels <- list(c())
+engl_voiceless_cons <- list(c("C","f","h","k","p","s","S","t","T")) #should h be included here? 
+engl_voiced_cons <- list(c("b","d","D","g","J","m","n","G","v","z","Z")) #should liquids and semivowels be included or no?
+engl_fricatives <- list(c("D","f","s","S","T","v","z","Z"))
+engl_affricates <- list(c("C","J"))
+engl_velars <- list(c("k","g","G"))
+engl_liquids <- list(c("l","r"))
+engl_rhotic_vowels <- list(c("X-R")) #i think this is correct but unsure  
 
 phonetic<-tibble()
 stress<-tibble()
