@@ -11,22 +11,21 @@ library(tidyr)
 library(tidytext)
 library(stringr)
 
-# list for each important category 
-# unsure if i need to do list(c()) or if i can just do list(), and what is the difference
+# phoneme categories 
 engl_voiceless_cons <- list(c("C","f","h","k","p","s","S","t","T")) #should h be included here? 
-engl_voiced_cons <- list(c("b","d","D","g","J","m","n","G","v","z","Z")) #should liquids and semivowels be included or no?
+engl_voiced_cons <- list(c("b","d","D","g","J","m","n","G","v","z","Z")) #should liquids and semivowels be included here or no?
 engl_fricatives <- list(c("D","f","s","S","T","v","z","Z"))
 engl_affricates <- list(c("C","J"))
 engl_velars <- list(c("k","g","G"))
 engl_liquids <- list(c("l","r"))
-# syllabic liquids? 
+#syllabic liquids? 
 engl_rhotic_vowels <- list(c("X-R")) #i think this is correct but unsure  
 
 # function to determine if value is in a list 
 list_search <- function(char, list_name) {
   result <- FALSE
-  for(el in list_name) {
-    if(el == char) result <- TRUE
+  for(element in list_name) {
+    if(element == char) result <- TRUE
   }
   result
 }
@@ -63,25 +62,26 @@ for (fileName in fileNames){
     points<-0  # QUESTION are we calculating points for individual word or whole transcript? 
     for (word in 1:nrow(phonetic)){
       
-      # BEGIN PSEUDOCODE of new solution 
+      # BEGIN new solution 
       
-      len<-str_length(word) #length of word, used to iterate through its chars
+      len<-nchar(word, type="chars")  # number of characters in the word 
       if (polysyll == 1) points=points+1  #word patterns (1)
       if (nonInitialPrimaryStress == 1) points=points+1  #word patterns (2)
       points=points+str_count(phonetic[j,], "X-R")  #sound classes (2), rhotic vowels
       
       # for loop to find consonant clusters and sound classes 
       for (index in 0:len-1) {
+        phoneme<-substr(word, index, index)
         if (index == len-1) {
-          if (list_search(word_index, engl_voiced_cons) | list_search(word[index], engl_voiceless_cons)) {
+          if (list_search(phoneme, engl_voiced_cons) | list_search(phoneme, engl_voiceless_cons)) {
             points=points+1  #syllable structures (1)
           }
         }
-        if (list_search(word[index], engl_voiced_cons) | list_search(word[index], engl_voiceless_cons)) {
+        if (list_search(phoneme, engl_voiced_cons) | list_search(phoneme, engl_voiceless_cons)) {
           j <- index
           is_cluster <- FALSE 
           while (j < len-1) {
-            if (list_search(word[j+1], engl_voiced_cons) | list_search(word[j+1], engl_voiceless_cons)) {
+            if (list_search(substr(word,j+1,j+1), engl_voiced_cons) | list_search(substr(word,j+1,j+1), engl_voiceless_cons)) {
               j=j+1
               is_cluster <- TRUE
             } 
@@ -89,18 +89,18 @@ for (fileName in fileNames){
           }
           if (is_cluster) points=points+1  #syllable structures (2)
         }
-        if (list_search(word[index], engl_velars)) points=points+1  #sound classes (1)
-        if (list_search(word[index], engl_liquids)) points=points+1  #sound classes (2)
+        if (list_search(phoneme, engl_velars)) points=points+1  #sound classes (1)
+        if (list_search(phoneme, engl_liquids)) points=points+1  #sound classes (2)
         #if word[i] in syllabic_liquid then points=points+1  #sound classes (2)
-        if (list_search(word[index], engl_fricatives) | list_search(word[index], engl_affricates)) {
+        if (list_search(phoneme, engl_fricatives) | list_search(phoneme, engl_affricates)) {
           points=points+1  #sound classes (3)
-          if (list_search(word[index], engl_voiced_cons)) {
+          if (list_search(phoneme, engl_voiced_cons)) {
             points=points+1  #sound classes (4)
           }
         }
       }
       
-      # END PSEUDOCODE of new solution 
+      # END new solution 
       
     }
     phonetic[!apply(phonetic == "", 1, all),]
