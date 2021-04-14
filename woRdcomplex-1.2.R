@@ -12,14 +12,14 @@ library(tidytext)
 library(stringr)
 
 # phoneme categories 
-engl_voiceless_cons <- list(c("C","f","h","k","p","s","S","t","T")) #should h be included here? 
-engl_voiced_cons <- list(c("b","d","D","g","J","m","n","G","v","z","Z")) #should liquids and semivowels be included here or no?
-engl_fricatives <- list(c("D","f","s","S","T","v","z","Z"))
-engl_affricates <- list(c("C","J"))
-engl_velars <- list(c("k","g","G"))
-engl_liquids <- list(c("l","r"))
+engl_voiceless_cons <- list("C","f","h","k","p","s","S","t","T") #should h be included here? 
+engl_voiced_cons <- list("b","d","D","g","J","m","n","G","v","z","Z") #should liquids and semivowels be included here or no?
+engl_fricatives <- list("D","f","s","S","T","v","z","Z")
+engl_affricates <- list("C","J")
+engl_velars <- list("k","g","G")
+engl_liquids <- list("l","r")
 #syllabic liquids? 
-engl_rhotic_vowels <- list(c("X-R")) #i think this is correct but unsure  
+engl_rhotic_vowels <- list("X-R") #i think this is correct but unsure  
 
 # function to determine if value is in a list 
 list_search <- function(char, list_name) {
@@ -64,7 +64,7 @@ for (fileName in fileNames){
       
       # BEGIN new solution 
       
-      len<-nchar(word, type="chars")  # number of characters in the word 
+      len<-str_length(word)  # number of characters in the word 
       if (polysyll == 1) points=points+1  #word patterns (1)
       if (nonInitialPrimaryStress == 1) points=points+1  #word patterns (2)
       points=points+str_count(phonetic[j,], "X-R")  #sound classes (2), rhotic vowels
