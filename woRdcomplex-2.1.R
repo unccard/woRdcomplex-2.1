@@ -12,22 +12,13 @@ library(tidytext)
 library(stringr)
 
 # phoneme categories 
-engl_voiceless_cons <- list("C","f","h","k","p","s","S","t","T") #should h be included here? probably okay but may want to omit
-engl_voiced_cons <- list("b","d","D","g","J","l","m","n","G","r","v","w","y","z","Z") 
-engl_syll_cons <- list("L", "M", "N", "R")  
-engl_fricatives <- list("D","f","h","s","S","T","v","z","Z")
-engl_affricates <- list("C","J")
-engl_velars <- list("k","g","G")
-engl_liquids <- list("l","L","r","R","X") 
-
-# function to determine if list contains a char value  
-list_search <- function(char, list_name) {
-  result <- FALSE
-  for(element in list_name) {
-    if(element == char) result <- TRUE
-  }
-  result
-}
+engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T") # h is probably okay but may want to omit
+engl_voiced_cons <- c("b","d","D","g","J","l","m","n","G","r","v","w","y","z","Z") 
+engl_syll_cons <- c("L", "M", "N", "R")  
+engl_fricatives <- c("D","f","h","s","S","T","v","z","Z")
+engl_affricates <- c("C","J")
+engl_velars <- c("k","g","G")
+engl_liquids <- c("l","L","r","R","X") 
 
 phonetic<-tibble()
 stress<-tibble()
@@ -71,15 +62,16 @@ for (fileName in fileNames){
       for (index in 0:len-1) {
         phoneme<-substr(word, index, index)
         if (index == len-1) {
-          if (list_search(phoneme, engl_voiced_cons) | list_search(phoneme, engl_voiceless_cons) | list_search(phoneme, engl_syll_cons)) { 
+          if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons | phoneme %in% engl_syll_cons) { 
             points=points+1  #syllable structures (1)
           }
         }
-        if (list_search(phoneme, engl_voiced_cons) | list_search(phoneme, engl_voiceless_cons)) {
+        if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons) {
           j <- index
           is_cluster <- FALSE 
           while (j < len-1) {
-            if (list_search(substr(word,j+1,j+1), engl_voiced_cons) | list_search(substr(word,j+1,j+1), engl_voiceless_cons)) {
+            next_phon <- substr(word, j+1, j+1)
+            if (next_phon %in% engl_voiced_cons | next_phon %in% engl_voiceless_cons) {
               j=j+1
               is_cluster <- TRUE
             } 
@@ -87,11 +79,11 @@ for (fileName in fileNames){
           }
           if (is_cluster) points=points+1  #syllable structures (2)
         }
-        if (list_search(phoneme, engl_velars)) points=points+1  #sound classes (1)
-        if (list_search(phoneme, engl_liquids)) points=points+1  #sound classes (2)
-        if (list_search(phoneme, engl_fricatives) | list_search(phoneme, engl_affricates)) {
+        if (phoneme %in% engl_velars) points=points+1  #sound classes (1)
+        if (phoneme %in% engl_liquids) points=points+1  #sound classes (2)
+        if (phoneme %in% engl_fricatives | phoneme %in% engl_affricates) {
           points=points+1  #sound classes (3)
-          if (list_search(phoneme, engl_voiced_cons)) {
+          if (phoneme %in% engl_voiced_cons) {
             points=points+1  #sound classes (4)
           }
         }
