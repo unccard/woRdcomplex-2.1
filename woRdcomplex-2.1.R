@@ -59,9 +59,9 @@ for (fileName in fileNames){
       if (nonInitialPrimaryStress == 1) points=points+1  #word patterns (2)
      
       # for loop to find consonant clusters and sound classes 
-      for (index in 0:len-1) {
+      for (index in 1:len) {
         phoneme<-substr(word, index, index)
-        if (index == len-1) {
+        if (index == len) {
           if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons | phoneme %in% engl_syll_cons) { 
             points=points+1  #syllable structures (1)
           }
@@ -69,7 +69,7 @@ for (fileName in fileNames){
         if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons) {
           j <- index
           is_cluster <- FALSE 
-          while (j < len-1) {
+          while (j < len) {
             next_phon <- substr(word, j+1, j+1)
             if (next_phon %in% engl_voiced_cons | next_phon %in% engl_voiceless_cons) {
               j=j+1
