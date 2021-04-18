@@ -20,6 +20,7 @@ engl_affricates <- c("C","J")
 engl_velars <- c("k","g","G")
 engl_liquids <- c("l","L","r","R","X") 
 
+score <- 0
 phonetic<-tibble()
 stress<-tibble()
 data<-read.csv('UNCCombWordDB.csv', na.strings=c("", "NA"))
@@ -95,7 +96,7 @@ for (fileName in fileNames){
       
     }
     phonetic[!apply(phonetic == "", 1, all),]
-    score=points/nrow(phonetic)
+    score = points/nrow(phonetic)
   }
 }
 data<-cbind(fileName, score, points, nrow(phonetic))
