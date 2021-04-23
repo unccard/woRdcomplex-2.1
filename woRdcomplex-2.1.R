@@ -100,6 +100,6 @@ for (fileName in fileNames){
   }
 }
 data<-cbind(fileName, score, points, nrow(phonetic))
-write.table(data, file="WCD_data.csv", append=TRUE, sep = ",", row.names = FALSE, col.names = FALSE)
+# write.table(data, file="WCD_data.csv", append=TRUE, sep = ",", row.names = FALSE, col.names = FALSE) #unsure what this is doing
 
 
