@@ -20,53 +20,58 @@ engl_affricates <- c("C","J")
 engl_velars <- c("k","g","G")
 engl_liquids <- c("l","L","r","R","X") 
 
-score <- 0
+phon_score <- 0
+wf_score <- 0
+
 phonetic<-tibble()
 stress<-tibble()
-data<-read.csv('UNCCombWordDB.csv', na.strings=c("", "NA"))
+word_db<-read.csv('UNCCombWordDB.csv', na.strings=c("", "NA"))
 fileNames = dir(pattern = ".txt")
 for (fileName in fileNames){
   phonetic<-tibble()
   stress<-tibble()
-  data<-{}
+  data<-{} 
   sample <- readChar(fileName, file.info(fileName)$size)
   sample<-as.character(sample) # returns sample as text representation
   sample<-str_to_lower(sample, locale="en") #converts to lowercase to match DB file 
   text_df<-tibble(text=sample)  #tibble is a simple data frame
   text_df <-text_df%>%
   unnest_tokens(word, text) #this breaks the column into words, one token(word) per row
-  tibbletest <-tibble(data$word, data$phon_klattese) #looks like setting up a variable that includes only the word and phon columns from file
+  tibbletest <-tibble(word_db$word, word_db$phon_klattese) #looks like setting up a variable that includes only the word and phon columns from file
   tibbletest <- na.omit(tibbletest) #na.omit gets rid of cases where the value is na
   #concrete <-na.omit(tibble(data$word, data$conc)) # this creates a variable of concreteness which does not produce any output
   
   tibbletest <- na.omit(tibbletest) # i don't understand how this is different from two lines above.
   for (i in 1:nrow(text_df)){
-    r<-which(toupper(text_df$word[i])==tibbletest$`data$word`, arr.ind = TRUE) # toupper goes to uppercase. why are we doing this?
+    r<-which(toupper(text_df$word[i])==tibbletest$`word_db$word`, arr.ind = TRUE) # toupper goes to uppercase. why are we doing this?
     # i guess that line defines r as which words have a value that can be found in the file.
     
-    phonetic <- paste(phonetic, tibbletest$`data$phon_klattese`[r[1]]) # not really sure what this does. from a test, it looks like it is one variable, which is the phonetic transcription of each word
+    phonetic <- paste(phonetic, tibbletest$`word_db$phon_klattese`[r[1]]) # not really sure what this does. from a test, it looks like it is one variable, which is the phonetic transcription of each word
     phonetic<-gsub("NA", "", phonetic) #substitute NA with blank
     #phonetic<-str_split(string=phonetic, pattern=" ") #i think this splits the string whenever there is a space - also no longer need?
     phonetic<-as.data.frame(phonetic, stringsAsFactors=FALSE) #makes this into a dataframe
     
-    tibbletest$`data$phon_klattese`[30407]
-    points<-0  
+    #tibbletest$`word_db$phon_klattese`[30407] # useful for testing? 
+    phon_points<-0  
+    wf_points<-0
     for (word in 1:nrow(phonetic)){
       
       # BEGIN new solution 
       
       len <- str_length(word)  # number of characters in the word 
-      polysyll <- data$polysyll
-      nonInitPrimStress <- data$non-initialPrimaryStress 
-      if (polysyll == 1) points=points+1  #word patterns (1)
-      if (nonInitPrimStress == 1) points=points+1  #word patterns (2)
+      polysyll <- word_db$polysyll  # is polysyllabic y/n 
+      nonInitPrimStress <- word_db$nonInitialPrimaryStress  # has non-initial stress y/n
+      word_freq <- word_db$SUBTLWF0to10  # normalized dist. word frequency score 
+      wf_points = wf_points + word_freq  # totaling wf for each word 
+      if (polysyll == 1) phon_points=phon_points+1  #word patterns (1)
+      if (nonInitPrimStress == 1) phon_points=phon_points+1  #word patterns (2)
      
       # for loop to find consonant clusters and sound classes 
       for (index in 1:len) {
         phoneme<-substr(word, index, index)
         if (index == len) {
           if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons | phoneme %in% engl_syll_cons) { 
-            points=points+1  #syllable structures (1)
+            phon_points=phon_points+1  #syllable structures (1)
           }
         }
         if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons) {
@@ -80,14 +85,14 @@ for (fileName in fileNames){
             } 
             else break
           }
-          if (is_cluster) points=points+1  #syllable structures (2)
+          if (is_cluster) phon_points=phon_points+1  #syllable structures (2)
         }
-        if (phoneme %in% engl_velars) points=points+1  #sound classes (1)
-        if (phoneme %in% engl_liquids) points=points+1  #sound classes (2)
+        if (phoneme %in% engl_velars) phon_points=phon_points+1  #sound classes (1)
+        if (phoneme %in% engl_liquids) phon_points=phon_points+1  #sound classes (2)
         if (phoneme %in% engl_fricatives | phoneme %in% engl_affricates) {
-          points=points+1  #sound classes (3)
+          phon_points=phon_points+1  #sound classes (3)
           if (phoneme %in% engl_voiced_cons) {
-            points=points+1  #sound classes (4)
+            phon_points=phon_points+1  #sound classes (4)
           }
         }
       }
@@ -96,10 +101,11 @@ for (fileName in fileNames){
       
     }
     phonetic[!apply(phonetic == "", 1, all),]
-    score = points/nrow(phonetic)
+    wf_score =  wf_points/nrow(phonetic) #need to verify that this is correct 
+    phon_score = phon_points/nrow(phonetic)
   }
 }
-data<-cbind(fileName, score, points, nrow(phonetic))
-# write.table(data, file="WCD_data.csv", append=TRUE, sep = ",", row.names = FALSE, col.names = FALSE) #unsure what this is doing
+data<-cbind(fileName, phon_score, phon_points, nrow(phonetic))
+write.table(data, file="WCD_data.csv", append=TRUE, sep = ",", row.names = FALSE, col.names = FALSE) #unsure what this is doing
 
 
