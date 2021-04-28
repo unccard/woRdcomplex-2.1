@@ -10,6 +10,7 @@ ppa<-{}
 library(tidyr)
 library(tidytext)
 library(stringr)
+#library(splitstackshape)
 
 # phoneme categories 
 engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T") # h is probably okay but may want to omit
@@ -37,19 +38,21 @@ for (fileName in fileNames){
   text_df<-tibble(text=sample)  #tibble is a simple data frame
   text_df <-text_df%>%
   unnest_tokens(word, text) #this breaks the column into words, one token(word) per row
-  tibbletest <-tibble(word_db$word, word_db$phon_klattese) #looks like setting up a variable that includes only the word and phon columns from file
+  tibbletest <-tibble(word_db$word, word_db$phon_klattese, word_db$polysyll, word_db$nonInitialPrimaryStress, word_db$SUBTLWF0to10) #variable that isolates what we need from db
   tibbletest <- na.omit(tibbletest) #na.omit gets rid of cases where the value is na
   #concrete <-na.omit(tibble(data$word, data$conc)) # this creates a variable of concreteness which does not produce any output
   
-  tibbletest <- na.omit(tibbletest) # i don't understand how this is different from two lines above.
+  #tibbletest <- na.omit(tibbletest) # i don't understand how this is different from two lines above.
   for (i in 1:nrow(text_df)){
-    r<-which(toupper(text_df$word[i])==tibbletest$`word_db$word`, arr.ind = TRUE) # toupper goes to uppercase. why are we doing this?
-    # i guess that line defines r as which words have a value that can be found in the file.
+    r<-which(text_df$word[i]==tibbletest$`word_db$word`, arr.ind = TRUE) # toupper goes to uppercase. why are we doing this?
+    # r is index of current word in the large database.
     
-    phonetic <- paste(phonetic, tibbletest$`word_db$phon_klattese`[r[1]]) # not really sure what this does. from a test, it looks like it is one variable, which is the phonetic transcription of each word
-    phonetic<-gsub("NA", "", phonetic) #substitute NA with blank
-    #phonetic<-str_split(string=phonetic, pattern=" ") #i think this splits the string whenever there is a space - also no longer need?
-    phonetic<-as.data.frame(phonetic, stringsAsFactors=FALSE) #makes this into a dataframe
+    phonetic = paste(phonetic, tibbletest$`word_db$phon_klattese`[r[1]]) # looking for phonetic transcription in column 1 of row r 
+    #phonetic <- gsub("NA", "", phonetic) #substitute NA with blank
+    #phonetic <- strsplit(phonetic, "") #i think this splits the string whenever there is a space 
+    #phonetic <- separate_rows(as.character(phonetic), 1, sep = " ")
+    #cSplit(phonetic, direction = "long")
+    phonetic = as.data.frame(phonetic, stringsAsFactors=FALSE) #makes this into a dataframe
     
     #tibbletest$`word_db$phon_klattese`[30407] # useful for testing? 
     phon_points<-0  
@@ -59,12 +62,12 @@ for (fileName in fileNames){
       # BEGIN new solution 
       
       len <- str_length(word)  # number of characters in the word 
-      polysyll <- word_db$polysyll  # is polysyllabic y/n 
-      nonInitPrimStress <- word_db$nonInitialPrimaryStress  # has non-initial stress y/n
-      word_freq <- word_db$SUBTLWF0to10  # normalized dist. word frequency score 
+      polysyll <- tibbletest$`word_db$polysyll`[word]  # is polysyllabic y/n 
+      nonInitPrimStress <- word_db$nonInitialPrimaryStress[word]  # has non-initial stress y/n
+      word_freq <- word_db$SUBTLWF0to10[word]  # normalized dist. word frequency score 
       wf_points = wf_points + word_freq  # totaling wf for each word 
-      if (polysyll == 1) phon_points=phon_points+1  #word patterns (1)
-      if (nonInitPrimStress == 1) phon_points=phon_points+1  #word patterns (2)
+      #if (polysyll == 1) phon_points=phon_points+1  #word patterns (1)
+      #if (nonInitPrimStress == 1) phon_points=phon_points+1  #word patterns (2)
      
       # for loop to find consonant clusters and sound classes 
       for (index in 1:len) {
@@ -101,7 +104,7 @@ for (fileName in fileNames){
       
     }
     phonetic[!apply(phonetic == "", 1, all),]
-    wf_score =  wf_points/nrow(phonetic) #need to verify that this is correct 
+    wf_score =  wf_points/nrow(phonetic)  
     phon_score = phon_points/nrow(phonetic)
   }
 }
