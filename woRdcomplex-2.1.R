@@ -29,7 +29,8 @@ stress<-tibble()
 word_db<-read.csv('UNCCombWordDB.csv', na.strings=c("", "NA"))
 fileNames = dir(pattern = ".txt")
 for (fileName in fileNames){
-  phonetic<-tibble()
+  #phonetic<-tibble()
+  phonetic <- c(" ")
   stress<-tibble()
   data<-{} 
   sample <- readChar(fileName, file.info(fileName)$size)
@@ -42,17 +43,34 @@ for (fileName in fileNames){
   tibbletest <- na.omit(tibbletest) #na.omit gets rid of cases where the value is na
   #concrete <-na.omit(tibble(data$word, data$conc)) # this creates a variable of concreteness which does not produce any output
   
+
+  for(i in 1:nrow(text_df)) {
+    tscript <- text_df[i,1]
+    word <- toString(tscript[1,1])
+    row <- which(tibbletest[,1] == word)
+    col <- 2
+    # need to omit character(0)
+    phonetic<-append(phonetic, toString(tibbletest[row, col]))
+  }
+  print(phonetic)
+  
+  as.data.frame(phonetic)
+  
   #tibbletest <- na.omit(tibbletest) # i don't understand how this is different from two lines above.
-  for (i in 1:nrow(text_df)){
-    r<-which(text_df$word[i]==tibbletest$`word_db$word`, arr.ind = TRUE) # toupper goes to uppercase. why are we doing this?
+  for (i in 2:nrow(phonetic)){
+    #r<-which(text_df$word[i]==tibbletest$`word_db$word`, arr.ind = TRUE) 
     # r is index of current word in the large database.
     
-    phonetic = paste(phonetic, tibbletest$`word_db$phon_klattese`[r[1]]) # looking for phonetic transcription in column 1 of row r 
+    #append(phonetic, r[1])
+    
+    #phonetic = paste(phonetic, tibbletest$`word_db$phon_klattese`[r[1]]) # looking for phonetic transcription in column 1 of row r 
     #phonetic <- gsub("NA", "", phonetic) #substitute NA with blank
     #phonetic <- strsplit(phonetic, "") #i think this splits the string whenever there is a space 
     #phonetic <- separate_rows(as.character(phonetic), 1, sep = " ")
     #cSplit(phonetic, direction = "long")
-    phonetic = as.data.frame(phonetic, stringsAsFactors=FALSE) #makes this into a dataframe
+    #phonetic = as.data.frame(phonetic, stringsAsFactors=FALSE) #makes this into a dataframe
+    
+    #as.data.frame(phonetic)
     
     #tibbletest$`word_db$phon_klattese`[30407] # useful for testing? 
     phon_points<-0  
