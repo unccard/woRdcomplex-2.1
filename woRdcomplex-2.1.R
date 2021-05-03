@@ -10,7 +10,8 @@ ppa<-{}
 library(tidyr)
 library(tidytext)
 library(stringr)
-#library(splitstackshape)
+#library(tibble)
+library(dplyr)
 
 # phoneme categories 
 engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T") # h is probably okay but may want to omit
@@ -24,13 +25,13 @@ engl_liquids <- c("l","L","r","R","X")
 phon_score <- 0
 wf_score <- 0
 
-phonetic<-tibble()
+#phonetic<-tibble()
 stress<-tibble()
 word_db<-read.csv('UNCCombWordDB.csv', na.strings=c("", "NA"))
 fileNames = dir(pattern = ".txt")
 for (fileName in fileNames){
   #phonetic<-tibble()
-  phonetic <- c(" ")
+  phonetic <- c()
   stress<-tibble()
   data<-{} 
   sample <- readChar(fileName, file.info(fileName)$size)
@@ -45,19 +46,20 @@ for (fileName in fileNames){
   
 
   for(i in 1:nrow(text_df)) {
-    tscript <- text_df[i,1]
-    word <- toString(tscript[1,1])
+  #for(i in 1:5) {
+    word <- toString(text_df[i,1])
     row <- which(tibbletest[,1] == word)
     col <- 2
     # need to omit character(0)
     phonetic<-append(phonetic, toString(tibbletest[row, col]))
   }
+  
+  phonetic<-as.data.frame(phonetic)
+  phonetic<-unique(phonetic)
+  
   print(phonetic)
-  
-  as.data.frame(phonetic)
-  
   #tibbletest <- na.omit(tibbletest) # i don't understand how this is different from two lines above.
-  for (i in 2:nrow(phonetic)){
+  for (i in 1:nrow(phonetic)){
     #r<-which(text_df$word[i]==tibbletest$`word_db$word`, arr.ind = TRUE) 
     # r is index of current word in the large database.
     
