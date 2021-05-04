@@ -4,9 +4,6 @@
 #This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation. AMDG. 
 #Script calculates the edit distance ratio for intelligible words in a sample. Requires CSV file "mrc2.csv"
 
-batch<-{}
-ppa<-{}
-
 library(tidyr)
 library(tidytext)
 library(stringr)
@@ -42,15 +39,13 @@ for (fileName in fileNames){
   text_df <-text_df%>%
   unnest_tokens(word, text) #this breaks the column into words, one token(word) per row
   tibbletest <-tibble(word_db$word, word_db$phon_klattese, word_db$polysyll, word_db$nonInitialPrimaryStress, word_db$SUBTLWF0to10) #variable that isolates what we need from db
-  #tibbletest <- na.omit(tibbletest) #na.omit gets rid of cases where the value is na
   #concrete <-na.omit(tibble(data$word, data$conc)) # this creates a variable of concreteness which does not produce any output
   
   # creating vectors for each variable for each word in the transcript 
   for(i in 1:nrow(text_df)) {
     word <- toString(text_df[i,1])
     row <- which(tibbletest[,1] == word)
-    if(identical(toString(tibbletest[row, 2]),"character(0)")){}
-    else {
+    if(!identical(toString(tibbletest[row, 2]),"character(0)")){   #omit words not found in db
       phonetic_tscript <- append(phonetic_tscript, toString(tibbletest[row, 2]))
       polysyll_tscript <- append(polysyll_tscript, toString(tibbletest[row, 3]))
       nonInitPrimStress_tscript <- append(nonInitPrimStress_tscript, toString(tibbletest[row, 4]))
@@ -66,19 +61,20 @@ for (fileName in fileNames){
   
   # for loop for each word in the phonetic transcript to calculate its score 
   for (word in 1:nrow(phonetic_tscript)){
-    print(word)
     
     # cumulative points for each word 
     phon_points<-0  
     wf_points<-0
     
     # isolating the data we need to calculate each word's score   
-    len <- str_length(word)  # number of characters in the word 
+    len <- str_length(phonetic_tscript[word,1])  # number of characters in the word 
     polysyll <- polysyll_tscript[word,1]  # if polysyllabic 
-    nonInitPrimStress <- nonInitPrimStress_tscript[word,1]  # if non-initial stress 
+    nonInitPrimStress <- nonInitPrimStress_tscript[word,1]  # if non-initial stress
+    wf <- as.integer(wf_tscript[word,1])
     
-    wf_points = wf_points + wf_tscript[word,1]  # adding up normalized wf score  
+    # BEGIN algorithm to calculate points for the word 
     
+    wf_points = wf_points + wf  # adding up normalized wf score  
     if (polysyll == 1) phon_points=phon_points+1  #word patterns (1)
     if (nonInitPrimStress == 1) phon_points=phon_points+1  #word patterns (2)
      
@@ -113,13 +109,15 @@ for (fileName in fileNames){
       }
     }
     
+    # END algorithm to calculate points for the word 
+    
     phon_total = phon_total + phon_points # adding phonetic points for this word to our total 
     wf_total = wf_total + wf_points # adding wf points for this word to our total  
   }
   #phonetic[!apply(phonetic == "", 1, all),]
   
   # calculate averages for each transcript from total points 
-  avg_phon <- phon_total/nrow
+  avg_phon <- phon_total/nrow(phonetic_tscript)
   avg_wf <- wf_total/nrow(phonetic_tscript) 
 }
 
