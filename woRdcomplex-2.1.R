@@ -21,9 +21,6 @@ engl_affricates <- c("C","J")
 engl_velars <- c("k","g","G")
 engl_liquids <- c("l","L","r","R","X") 
 
-total_phon_score <- 0
-total_wf_score <- 0
-
 word_db<-read.csv('UNCCombWordDB.csv', na.strings=c("", "NA"))
 fileNames = dir(pattern = ".txt")
 
@@ -33,6 +30,9 @@ for (fileName in fileNames){
   polysyll_tscript <- c()
   nonInitPrimStress_tscript <- c()
   wf_tscript <- c()
+  
+  phon_total <- 0
+  wf_total <- 0
   
   data<-{} 
   sample <- readChar(fileName, file.info(fileName)$size)
@@ -60,25 +60,27 @@ for (fileName in fileNames){
   
   # transforming the vectors into dataframes 
   phonetic_tscript<-as.data.frame(phonetic_tscript)
-  #phonetic_tscript<-unique(phonetic_tscript) 
-  
   polysyll_tscript<-as.data.frame(polysyll_tscript)
-  
   nonInitPrimStress_tscript<-as.data.frame(nonInitPrimStress_tscript)
-  
   wf_tscript<-as.data.frame(wf_tscript)
   
-  for (i in 1:nrow(phonetic_tscript)){
+  # for loop for each word in the phonetic transcript to calculate its score 
+  for (word in 1:nrow(phonetic_tscript)){
+    print(word)
+    
+    # cumulative points for each word 
     phon_points<-0  
     wf_points<-0
-      
+    
+    # isolating the data we need to calculate each word's score   
     len <- str_length(word)  # number of characters in the word 
-    polysyll <- tibbletest[word,3]  # is polysyllabic y/n 
-    nonInitPrimStress <- tibbletest[]  # has non-initial stress y/n
-    word_freq <- word_db$SUBTLWF0to10[word]  # normalized dist. word frequency score 
-    wf_points = wf_points + word_freq  # totaling wf for each word 
-    #if (polysyll == 1) phon_points=phon_points+1  #word patterns (1)
-    #if (nonInitPrimStress == 1) phon_points=phon_points+1  #word patterns (2)
+    polysyll <- polysyll_tscript[word,1]  # if polysyllabic 
+    nonInitPrimStress <- nonInitPrimStress_tscript[word,1]  # if non-initial stress 
+    
+    wf_points = wf_points + wf_tscript[word,1]  # adding up normalized wf score  
+    
+    if (polysyll == 1) phon_points=phon_points+1  #word patterns (1)
+    if (nonInitPrimStress == 1) phon_points=phon_points+1  #word patterns (2)
      
     # for loop to find consonant clusters and sound classes 
     for (index in 1:len) {
@@ -89,12 +91,12 @@ for (fileName in fileNames){
         }
       }
       if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons) {
-        j <- index
+        i <- index
         is_cluster <- FALSE 
-        while (j < len) {
-          next_phon <- substr(word, j+1, j+1)
+        while (i < len) {
+          next_phon <- substr(word, i+1, i+1)
           if (next_phon %in% engl_voiced_cons | next_phon %in% engl_voiceless_cons) {
-            j=j+1
+            i=i+1
             is_cluster <- TRUE
           } 
           else break
@@ -110,15 +112,18 @@ for (fileName in fileNames){
         }
       }
     }
+    
+    phon_total = phon_total + phon_points # adding phonetic points for this word to our total 
+    wf_total = wf_total + wf_points # adding wf points for this word to our total  
   }
-  phonetic[!apply(phonetic == "", 1, all),]
-  wf_score =  wf_points/nrow(phonetic)  
-  phon_score = phon_points/nrow(phonetic)
+  #phonetic[!apply(phonetic == "", 1, all),]
+  
+  # calculate averages for each transcript from total points 
+  avg_phon <- phon_total/nrow
+  avg_wf <- wf_total/nrow(phonetic_tscript) 
 }
 
-print(phon_score)
-print(wf_score)
-data<-cbind(fileName, phon_score, phon_points, nrow(phonetic))
-write.table(data, file="WCD_data.csv", append=TRUE, sep = ",", row.names = FALSE, col.names = FALSE) #unsure what this is doing
+#data<-cbind(fileName, phon_total, phon_points, nrow(phonetic))
+#write.table(data, file="WCD_data.csv", append=TRUE, sep = ",", row.names = FALSE, col.names = FALSE) #unsure what this is doing
 
 
