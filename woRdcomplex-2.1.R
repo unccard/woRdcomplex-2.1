@@ -27,29 +27,33 @@ row_count <- 0  # keep track of rows in data frame
 
 for (fileName in fileNames){
   
+  # initialize vectors that will be populated with data for each word in sample 
   phonetic_tscript <- c()
   polysyll_tscript <- c()
   nonInitPrimStress_tscript <- c()
   wf_tscript <- c()
   
+  # initialize cumulative points for each file 
   phon_total <- 0
   wf_total <- 0
   
   #data<-{} 
   sample <- readChar(fileName, file.info(fileName)$size)
-  sample<-as.character(sample) # returns sample as text representation
-  sample<-str_to_lower(sample, locale="en") #converts to lowercase to match DB file 
-  text_df<-tibble(text=sample)  #tibble is a simple data frame
-  text_df <-text_df%>%
-  unnest_tokens(word, text) #this breaks the column into words, one token(word) per row
-  tibbletest <-tibble(word_db$word, word_db$phon_klattese, word_db$polysyll, word_db$nonInitialPrimaryStress, word_db$SUBTLWF0to10) #variable that isolates what we need from db
+  sample<-as.character(sample)  # returns sample as text representation
+  sample<-str_to_lower(sample, locale="en")  # convert sample to lowercase to match DB file 
+  text_df<-tibble(text=sample)  # convert sample to tibble (a simple data frame) 
+  text_df <-text_df%>%  # way of filtering the data 
+  unnest_tokens(word, text)  # break the column into one word per row 
+  tibbletest <-tibble(word_db$word, word_db$phon_klattese, word_db$polysyll, word_db$nonInitialPrimaryStress, 
+                      word_db$SUBTLWF0to10)  # isolates the categories we need from word_db 
+  
   #concrete <-na.omit(tibble(data$word, data$conc)) # this creates a variable of concreteness which does not produce any output
   
-  # creating vectors for each variable for each word in the transcript 
+  # create vectors containing data for each word in the transcript 
   for(i in 1:nrow(text_df)) {
     word <- toString(text_df[i,1])
     row <- which(tibbletest[,1] == word)
-    if(!identical(toString(tibbletest[row, 2]),"character(0)")){  #omit words not found in db
+    if(!identical(toString(tibbletest[row, 2]),"character(0)")){  # omit words not found in word_db
       phonetic_tscript <- append(phonetic_tscript, toString(tibbletest[row, 2]))
       polysyll_tscript <- append(polysyll_tscript, toString(tibbletest[row, 3]))
       nonInitPrimStress_tscript <- append(nonInitPrimStress_tscript, toString(tibbletest[row, 4]))
@@ -57,20 +61,20 @@ for (fileName in fileNames){
     }
   }
   
-  # transforming the vectors into dataframes 
+  # transform the vectors into data frames 
   phonetic_tscript<-as.data.frame(phonetic_tscript)
   polysyll_tscript<-as.data.frame(polysyll_tscript)
   nonInitPrimStress_tscript<-as.data.frame(nonInitPrimStress_tscript)
   wf_tscript<-as.data.frame(wf_tscript)
   
-  # for loop for each word in the phonetic transcript to calculate its score 
+  # for loop going through each word in the phonetic transcript to calculate its scores 
   for (word in 1:nrow(phonetic_tscript)){
     
-    # cumulative points for each word 
+    # initialize cumulative points for each word in file 
     phon_points<-0  
     wf_points<-0
     
-    # isolating the data we need to calculate each word's score   
+    # isolate data specific to current word    
     len <- str_length(phonetic_tscript[word,1])  # number of characters in the word 
     polysyll <- polysyll_tscript[word,1]  # if polysyllabic 
     nonInitPrimStress <- nonInitPrimStress_tscript[word,1]  # if non-initial stress
@@ -78,16 +82,16 @@ for (fileName in fileNames){
     
     # BEGIN algorithm to calculate points for the word 
     
-    wf_points = wf_points + wf  # adding up normalized wf score  
-    if (polysyll == 1) phon_points=phon_points+1  #word patterns (1)
-    if (nonInitPrimStress == 1) phon_points=phon_points+1  #word patterns (2)
+    wf_points = wf_points + wf  # add up normalized word_freq score  
+    if (polysyll == 1) phon_points=phon_points+1  # word patterns (1)
+    if (nonInitPrimStress == 1) phon_points=phon_points+1  # word patterns (2)
      
     # for loop to find consonant clusters and sound classes 
     for (index in 1:len) {
       phoneme<-substr(word, index, index)
       if (index == len) {
         if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons | phoneme %in% engl_syll_cons) { 
-          phon_points=phon_points+1  #syllable structures (1)
+          phon_points=phon_points+1  # syllable structures (1)
         }
       }
       if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons) {
@@ -101,25 +105,25 @@ for (fileName in fileNames){
           } 
           else break
         }
-        if (is_cluster) phon_points=phon_points+1  #syllable structures (2)
+        if (is_cluster) phon_points=phon_points+1  # syllable structures (2)
       }
-      if (phoneme %in% engl_velars) phon_points=phon_points+1  #sound classes (1)
-      if (phoneme %in% engl_liquids) phon_points=phon_points+1  #sound classes (2)
+      if (phoneme %in% engl_velars) phon_points=phon_points+1  # sound classes (1)
+      if (phoneme %in% engl_liquids) phon_points=phon_points+1  # sound classes (2)
       if (phoneme %in% engl_fricatives | phoneme %in% engl_affricates) {
-        phon_points=phon_points+1  #sound classes (3)
+        phon_points=phon_points+1  # sound classes (3)
         if (phoneme %in% engl_voiced_cons) {
-          phon_points=phon_points+1  #sound classes (4)
+          phon_points=phon_points+1  # sound classes (4)
         }
       }
     }
     
     # END algorithm to calculate points for the word 
     
-    phon_total = phon_total + phon_points # adding phonetic points for this word to our total 
-    wf_total = wf_total + wf_points # adding wf points for this word to our total  
+    phon_total = phon_total + phon_points # add phonetic points for this word to our total 
+    wf_total = wf_total + wf_points # adding word_freq points for this word to our total  
   }
   
-  # calculate averages for each transcript from total points 
+  # calculate averages for file from total points 
   avg_phon <- phon_total/nrow(phonetic_tscript)
   avg_wf <- wf_total/nrow(phonetic_tscript) 
   
