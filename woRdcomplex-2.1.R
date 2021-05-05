@@ -21,6 +21,8 @@ engl_liquids <- c("l","L","r","R","X")
 word_db<-read.csv('UNCCombWordDB.csv', na.strings=c("", "NA"))
 fileNames = dir(pattern = ".txt")
 
+data<-{}
+
 for (fileName in fileNames){
   
   phonetic_tscript <- c()
@@ -31,7 +33,7 @@ for (fileName in fileNames){
   phon_total <- 0
   wf_total <- 0
   
-  data<-{} 
+  #data<-{} 
   sample <- readChar(fileName, file.info(fileName)$size)
   sample<-as.character(sample) # returns sample as text representation
   sample<-str_to_lower(sample, locale="en") #converts to lowercase to match DB file 
@@ -45,7 +47,7 @@ for (fileName in fileNames){
   for(i in 1:nrow(text_df)) {
     word <- toString(text_df[i,1])
     row <- which(tibbletest[,1] == word)
-    if(!identical(toString(tibbletest[row, 2]),"character(0)")){   #omit words not found in db
+    if(!identical(toString(tibbletest[row, 2]),"character(0)")){  #omit words not found in db
       phonetic_tscript <- append(phonetic_tscript, toString(tibbletest[row, 2]))
       polysyll_tscript <- append(polysyll_tscript, toString(tibbletest[row, 3]))
       nonInitPrimStress_tscript <- append(nonInitPrimStress_tscript, toString(tibbletest[row, 4]))
@@ -70,7 +72,7 @@ for (fileName in fileNames){
     len <- str_length(phonetic_tscript[word,1])  # number of characters in the word 
     polysyll <- polysyll_tscript[word,1]  # if polysyllabic 
     nonInitPrimStress <- nonInitPrimStress_tscript[word,1]  # if non-initial stress
-    wf <- as.integer(wf_tscript[word,1])
+    wf <- as.double(wf_tscript[word,1])
     
     # BEGIN algorithm to calculate points for the word 
     
@@ -114,7 +116,6 @@ for (fileName in fileNames){
     phon_total = phon_total + phon_points # adding phonetic points for this word to our total 
     wf_total = wf_total + wf_points # adding wf points for this word to our total  
   }
-  #phonetic[!apply(phonetic == "", 1, all),]
   
   # calculate averages for each transcript from total points 
   avg_phon <- phon_total/nrow(phonetic_tscript)
