@@ -21,7 +21,9 @@ engl_liquids <- c("l","L","r","R","X")
 word_db<-read.csv('UNCCombWordDB.csv', na.strings=c("", "NA"))
 fileNames = dir(pattern = ".txt")
 
-data<-{}
+dims <- list(c(), c("File_Name", "Avg_Phon_Score", "Avg_WF_Score"))  # column headers for data frame 
+data <- data.frame(matrix(vector(), 0, 3, dimnames=dims))  # data frame we will populate with data for each file 
+row_count <- 0  # keep track of rows in data frame 
 
 for (fileName in fileNames){
   
@@ -120,6 +122,12 @@ for (fileName in fileNames){
   # calculate averages for each transcript from total points 
   avg_phon <- phon_total/nrow(phonetic_tscript)
   avg_wf <- wf_total/nrow(phonetic_tscript) 
+  
+  # write output and file name to data frame  
+  row_count = row_count + 1
+  data[1,1] = fileName
+  data[1,2] = avg_phon
+  data[1,3] = avg_wf 
 }
 
 #data<-cbind(fileName, phon_total, phon_points, nrow(phonetic))
