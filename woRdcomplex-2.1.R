@@ -10,7 +10,7 @@ library(stringr)
 library(dplyr)
 
 # phoneme categories 
-engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T") # h is probably okay but may want to omit
+engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T") 
 engl_voiced_cons <- c("b","d","D","g","J","l","m","n","G","r","v","w","y","z","Z") 
 engl_syll_cons <- c("L", "M", "N", "R")  
 engl_fricatives <- c("D","f","h","s","S","T","v","z","Z")
@@ -21,6 +21,7 @@ engl_liquids <- c("l","L","r","R","X")
 word_db<-read.csv('UNCCombWordDB.csv', na.strings=c("", "NA"))
 fileNames = dir(pattern = ".txt")
 
+# add num words - words in db and total words in transcript 
 dims <- list(c(), c("File_Name", "Avg_Phon_Score", "Avg_WF_Score"))  # column headers for data frame 
 data <- data.frame(matrix(vector(), 0, 3, dimnames=dims))  # data frame we will populate with data for each file 
 row_count <- 0  # keep track of rows in data frame 
@@ -47,6 +48,7 @@ for (fileName in fileNames){
   tibbletest <-tibble(word_db$word, word_db$phon_klattese, word_db$polysyll, word_db$nonInitialPrimaryStress, 
                       word_db$SUBTLWF0to10)  # isolates the categories we need from word_db 
   
+  # get output for concreteness, fam, imag
   #concrete <-na.omit(tibble(data$word, data$conc)) # this creates a variable of concreteness which does not produce any output
   
   # populate vectors with data for each word in the transcript 
