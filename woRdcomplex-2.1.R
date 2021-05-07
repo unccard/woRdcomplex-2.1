@@ -129,9 +129,9 @@ for (fileName in fileNames){
   
   # write output and file name to data frame  
   row_count = row_count + 1
-  data[1,1] = fileName
-  data[1,2] = avg_phon
-  data[1,3] = avg_wf 
+  data[row_count,1] = fileName
+  data[row_count,2] = avg_phon
+  data[row_count,3] = avg_wf 
 }
 
 #data<-cbind(fileName, phon_total, phon_points, nrow(phonetic))
