@@ -49,7 +49,7 @@ for (fileName in fileNames){
   
   #concrete <-na.omit(tibble(data$word, data$conc)) # this creates a variable of concreteness which does not produce any output
   
-  # create vectors containing data for each word in the transcript 
+  # populate vectors with data for each word in the transcript 
   for(i in 1:nrow(text_df)) {
     word <- toString(text_df[i,1])
     row <- which(tibbletest[,1] == word)
