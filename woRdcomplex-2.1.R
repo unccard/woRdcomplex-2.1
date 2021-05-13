@@ -1,6 +1,6 @@
 # woRdcomplex version 2.1 (13 May 2021)--an R software script for
 # automated phonetic transcription analysis by Lindsay Greene, adapted from v1.1 by Kevin T. Cunningham. 
-# Copyright (C) 2020. Lindsay Greene
+# Copyright (C) 2021. Lindsay Greene
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation. AMDG. 
 # Script calculates the edit distance ratio for intelligible words in a sample. 
 # Requires CSV file "UNCCombWordDB.csv" and that the user specify a file path on line 26.  
