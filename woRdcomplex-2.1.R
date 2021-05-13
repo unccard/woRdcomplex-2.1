@@ -1,8 +1,9 @@
-# woRdcomplex version 1.2 (12 April 2021)--an R software script for
-#automated phonetic transcription analysis v 1.1 by Kevin T Cunningham. Copyright (C)
-#2020. Kevin T Cunningham
-#This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation. AMDG. 
-#Script calculates the edit distance ratio for intelligible words in a sample. Requires CSV file "mrc2.csv"
+# woRdcomplex version 2.1 (13 May 2021)--an R software script for
+# automated phonetic transcription analysis by Lindsay Greene, adapted from v1.1 by Kevin T. Cunningham. 
+# Copyright (C) 2020. Lindsay Greene
+# This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation. AMDG. 
+# Script calculates the edit distance ratio for intelligible words in a sample. 
+# Requires CSV file "UNCCombWordDB.csv" and that the user specify a file path on line 26.  
 
 library(tidyr)
 library(tidytext)
@@ -78,11 +79,6 @@ for (file in 1:length(files)){
     #imag_tscript <- append(conc_tscript, toString(tibbletest[row, 8]))
   }
   
-  # filter NA values out of data 
-  #fam_tscript<-na.omit(fam_tscript)
-  #conc_tscript<-na.omit(conc_tscript)
-  #imag_tscript<-na.omit(imag_tscript)
-  
   # transform the vectors into data frames 
   phonetic_tscript<-as.data.frame(phonetic_tscript)
   polysyll_tscript<-as.data.frame(polysyll_tscript)
@@ -105,7 +101,6 @@ for (file in 1:length(files)){
     wf <- as.double(wf_tscript[word,1])
     
     # TO DO: conc, fam, imag vars
-    
     
     # BEGIN algorithm to calculate points for the word 
     
