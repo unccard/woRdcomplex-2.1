@@ -22,7 +22,7 @@ engl_liquids <- c("l","L","r","R","X")
 word_db <- read.csv('UNCCombWordDB.csv', na.strings=c("", "NA"))
 
 # TO DO: fill in arguments of data.path with path to directory containing .txt files, leaving first argument blank 
-# for example: /User/folder1/folder2 -> data_path("", "User", "folder1", "folder2")
+# for example: /Users/folder1/folder2 -> data_path("", "Users", "folder1", "folder2")
 data_path <- file.path("", "Users", "lindsaygreene", "Desktop")
 files <- list.files(path=data_path, pattern="*.txt")
 
@@ -170,7 +170,5 @@ for (file in 1:length(files)){
   #data[row_count,8] = avg_imag
 }
 
-#data<-cbind(fileName, phon_total, phon_points, nrow(phonetic))
-#write.table(data, file="WCD_data.csv", append=TRUE, sep = ",", row.names = FALSE, col.names = FALSE) #unsure what this is doing
-
-
+# write output to file and save to same location as .txt files 
+write.csv(data, file=paste(data_path, "/", "wcm_ouput.csv", sep=""))
