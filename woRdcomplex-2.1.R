@@ -9,6 +9,7 @@ library(tidyr)
 library(tidytext)
 library(stringr)
 library(dplyr)
+library("xlsx")
 
 # phoneme categories 
 engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
@@ -36,7 +37,7 @@ rownames(data) <- files
 # set up word by word analysis 
 word_by_word <- data.frame(matrix(vector(), ncol=2))
 names <- list("klattese", "wcm_score")
-rownames(word_by_word) <- names
+colnames(word_by_word) <- names
 
 for (file in 1:length(files)){
   
@@ -120,8 +121,6 @@ for (file in 1:length(files)){
     nonInitPrimStress <- nonInitPrimStress_tscript[word,1]  # if non-initial stress
     wf <- as.double(wf_tscript[word,1])
     
-    # TO DO: conc, fam, imag vars
-    
     # BEGIN algorithm to calculate points for the word 
     
     if (polysyll == 1) phon_points=phon_points+1  # word patterns (1)
@@ -129,7 +128,7 @@ for (file in 1:length(files)){
      
     # for loop to find consonant clusters and sound classes 
     for (index in 1:len) {
-      phoneme<-substr(klattese, index, index)
+      phoneme <- substr(klattese, index, index)
       if (index == len) {
         if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons | phoneme %in% engl_syll_cons) { 
           phon_points=phon_points+1  # syllable structures (1)
@@ -193,4 +192,4 @@ for (file in 1:length(files)){
 
 # write output to file and save to same location as .txt files 
 write.csv(data, file=paste(data_path, "/", "wcm_output.csv", sep=""))
-#write.csv(word_by_word, file=paste(data_path, "/", "word_by_word.csv", sep=""))
+write.xlsx(word_by_word, file=paste(data_path, "/", "word_by_word.xlsx", sep=""), sheetName = "WordByWord")
