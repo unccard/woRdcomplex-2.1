@@ -170,12 +170,9 @@ for (file in 1:length(files)){
   }
   
   # loop through fam, conc, imag and add up non-zero values 
-  for(i in nrow(fam_tscript)) if(as.integer(fam_tscript[i,1])>0) {
-    fam_total = fam_total + as.integer(fam_tscript[i,1])
-    print(fam_tscript[i,1])
-  }
-  for(i in nrow(conc_tscript)) if(as.integer(conc_tscript[i,1])>0) conc_total = conc_total + as.integer(conc_tscript[i,1])
-  for(i in nrow(imag_tscript)) if(as.integer(imag_tscript[i,1])>0) imag_total = imag_total + as.integer(imag_tscript[i,1])
+  for(i in 1:nrow(fam_tscript)) if(as.integer(fam_tscript[i,1])>0) fam_total = fam_total + as.integer(fam_tscript[i,1])
+  for(i in 1:nrow(conc_tscript)) if(as.integer(conc_tscript[i,1])>0) conc_total = conc_total + as.integer(conc_tscript[i,1])
+  for(i in 1:nrow(imag_tscript)) if(as.integer(imag_tscript[i,1])>0) imag_total = imag_total + as.integer(imag_tscript[i,1])
   
   # calculate averages for file from total points 
   avg_phon <- phon_total/nrow(phonetic_tscript)
@@ -185,7 +182,7 @@ for (file in 1:length(files)){
   avg_imag <- imag_total/(nrow(imag_tscript)-imag_null) 
   
   # write output and file name to data frame  
-  data[file,1] = as.integer(nrow(text_df))
+  data[file,1] = nrow(text_df)
   data[file,2] = nrow(phonetic_tscript)
   data[file,3] = avg_phon
   data[file,4] = avg_wf 
