@@ -11,13 +11,13 @@ library(stringr)
 library(dplyr)
 
 # phoneme categories 
-engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T") 
-engl_voiced_cons <- c("b","d","D","g","J","l","m","n","G","r","v","w","y","z","Z") 
-engl_syll_cons <- c("L", "M", "N", "R")  
+engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
+engl_voiced_cons <- c("b","d","D","g","J","l","m","n","G","r","v","w","y","z","Z")
+engl_syll_cons <- c("L", "M", "N", "R")
 engl_fricatives <- c("D","f","h","s","S","T","v","z","Z")
 engl_affricates <- c("C","J")
 engl_velars <- c("k","g","G")
-engl_liquids <- c("l","L","r","R","X") 
+engl_liquids <- c("l","L","r","R","X")
 
 word_db <- read.csv('UNCCombWordDB.csv', na.strings=c("", "NA"))
 
@@ -26,18 +26,17 @@ word_db <- read.csv('UNCCombWordDB.csv', na.strings=c("", "NA"))
 data_path <- file.path("", "Users", "lindsaygreene", "Desktop")
 files <- list.files(path=data_path, pattern="*.txt")
 
-header_names <- list(c(), c("File_Name", "Total_Words_in_Tscript", "Total_Words_Found_in_DB","Avg_Phon_Score", 
-                    "Avg_WF_Score", "Avg_Familiarity", "Avg_Concreteness", "Avg_Imag"))  # column headers for data frame 
-data <- data.frame(matrix(vector(), 0, 8, dimnames=header_names))  # data frame we will populate with data for each file 
+# TO DO: add avg imag/conc/fam headers 
+header_names <- list("Total_Words_in_Tscript", "Total_Words_Found_in_DB","Avg_Phon_Score", 
+                    "Avg_WF_Score")  # column headers for data frame
+data <- data.frame(matrix(vector(), ncol=4, nrow=length(files)))  # data frame we will populate with data for each file 
+colnames(data) <- header_names
+rownames(data) <- files
 row_count <- 0  # keep track of rows in data frame 
 
 for (file in 1:length(files)){
   
   fileName <- files[file]
-  
-  # update row count and store file name 
-  row_count = row_count + 1
-  data[row_count,1] = fileName
   
   # update file name to absolute path 
   fileName <- paste(data_path, "/", fileName, sep="")
@@ -91,11 +90,13 @@ for (file in 1:length(files)){
   # for loop going through each word in the phonetic transcript to calculate its scores 
   for (word in 1:nrow(phonetic_tscript)){
     
+    klattese <- phonetic_tscript[word,1]
+    
     # initialize cumulative points for each word in file 
     phon_points <- 0 
     
     # isolate data specific to current word    
-    len <- str_length(phonetic_tscript[word,1])  # number of characters in the word 
+    len <- str_length(klattese)  # number of characters in the word 
     polysyll <- polysyll_tscript[word,1]  # if polysyllabic 
     nonInitPrimStress <- nonInitPrimStress_tscript[word,1]  # if non-initial stress
     wf <- as.double(wf_tscript[word,1])
@@ -109,7 +110,7 @@ for (file in 1:length(files)){
      
     # for loop to find consonant clusters and sound classes 
     for (index in 1:len) {
-      phoneme<-substr(word, index, index)
+      phoneme<-substr(klattese, index, index)
       if (index == len) {
         if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons | phoneme %in% engl_syll_cons) { 
           phon_points=phon_points+1  # syllable structures (1)
@@ -161,13 +162,11 @@ for (file in 1:length(files)){
   
   
   # write output and file name to data frame  
-  data[row_count,2] = nrow(text_df)
-  data[row_count,3] = nrow(phonetic_tscript)
-  data[row_count,4] = avg_phon
-  data[row_count,5] = avg_wf 
-  #data[row_count,6] = avg_fam
-  #data[row_count,7] = avg_conc
-  #data[row_count,8] = avg_imag
+  data[file,1] = nrow(text_df)
+  data[file,2] = nrow(phonetic_tscript)
+  data[file,3] = avg_phon
+  data[file,4] = avg_wf 
+  #TO DO assign values to imag/conc etc 
 }
 
 # write output to file and save to same location as .txt files 
