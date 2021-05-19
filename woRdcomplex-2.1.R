@@ -139,7 +139,7 @@ for (file in 1:length(files)){
         i <- index
         is_cluster <- FALSE 
         while (i < len) {
-          next_phon <- substr(word, i+1, i+1)
+          next_phon <- substr(klattese, i+1, i+1)
           if (next_phon %in% engl_voiced_cons | next_phon %in% engl_voiceless_cons) {
             i=i+1
             is_cluster <- TRUE
