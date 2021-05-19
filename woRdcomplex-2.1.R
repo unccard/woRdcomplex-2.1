@@ -25,13 +25,11 @@ word_db <- read.csv('UNCCombWordDB.csv', na.strings=c("", "NA"))
 # for example: /Users/folder1/folder2 -> data_path("", "Users", "folder1", "folder2")
 data_path <- file.path("", "Users", "lindsaygreene", "Desktop")
 
-
-# TO DO: add avg imag/conc/fam headers and change ncol  
 # set up data frame to store results 
-data <- data.frame(matrix(vector(), ncol=4, nrow=length(files)))  # data frame to store output  
+data <- data.frame(matrix(vector(), ncol=7, nrow=length(files)))  # data frame to store output  
 files <- list.files(path=data_path, pattern="*.txt")
 header_names <- list("Total_Words_in_Tscript", "Total_Words_Found_in_DB","Avg_Phon_Score", 
-                    "Avg_WF_Score")  # column headers for data frame
+                    "Avg_WF_Score", "Avg_Fam_Score", "Avg_Conc_Score", "Avg_Imag_Score")  # column headers for data frame
 colnames(data) <- header_names
 rownames(data) <- files
 
@@ -62,9 +60,9 @@ for (file in 1:length(files)){
   polysyll_tscript <- c()
   nonInitPrimStress_tscript <- c()
   wf_tscript <- c()
-  #fam_tscript <- c()
-  #conc_tscript <- c()
-  #imag_tscript <- c()
+  fam_tscript <- c()
+  conc_tscript <- c()
+  imag_tscript <- c()
   
   # initialize cumulative points for each file 
   phon_total <- wf_total <- fam_total <- conc_total <- imag_total <- 0 
@@ -79,9 +77,9 @@ for (file in 1:length(files)){
       nonInitPrimStress_tscript <- append(nonInitPrimStress_tscript, toString(tibbletest[row, 4]))
       wf_tscript <- append(wf_tscript, toString(tibbletest[row, 5]))
     }
-    #fam_tscript <- append(fam_tscript, toString(tibbletest[row, 6]))
-    #conc_tscript <- append(conc_tscript, toString(tibbletest[row, 7]))
-    #imag_tscript <- append(conc_tscript, toString(tibbletest[row, 8]))
+    fam_tscript <- append(fam_tscript, toString(tibbletest[row, 6]))
+    conc_tscript <- append(conc_tscript, toString(tibbletest[row, 7]))
+    imag_tscript <- append(conc_tscript, toString(tibbletest[row, 8]))
   }
   
   # transform the vectors into data frames 
@@ -89,9 +87,24 @@ for (file in 1:length(files)){
   polysyll_tscript<-as.data.frame(polysyll_tscript)
   nonInitPrimStress_tscript<-as.data.frame(nonInitPrimStress_tscript)
   wf_tscript<-as.data.frame(wf_tscript)
-  #fam_tscript<-as.data.frame(fam_tscript)
-  #conc_tscript<-as.data.frame(conc_tscript)
-  #imag_tscript<-as.data.frame(imag_tscript)
+  fam_tscript<-as.data.frame(fam_tscript)
+  conc_tscript<-as.data.frame(conc_tscript)
+  imag_tscript<-as.data.frame(imag_tscript)
+  
+  # replace empty values in conc, imag, and fam with 0 
+  fam_null <- conc_null <- imag_null <- 0
+  for(i in 1:nrow(fam_tscript)) if(fam_tscript[i,1]=="NA" || fam_tscript[i,1]=="character(0)") {
+    fam_tscript[i,1] = 0
+    fam_null = fam_null + 1
+  }
+  for(i in 1:nrow(conc_tscript)) if(conc_tscript[i,1]=="NA" || conc_tscript[i,1]=="character(0)") {
+    conc_tscript[i,1] = 0
+    conc_null = conc_null + 1
+  }
+  for(i in 1:nrow(imag_tscript)) if(imag_tscript[i,1]=="NA" || imag_tscript[i,1]=="character(0)") {
+    imag_tscript[i,1] = 0
+    imag_null = imag_null + 1
+  }
   
   # for loop going through each word in the phonetic transcript to calculate its scores 
   for (word in 1:nrow(phonetic_tscript)){
@@ -154,31 +167,33 @@ for (file in 1:length(files)){
     # adding points for current word to cumulative total 
     phon_total = phon_total + phon_points 
     wf_total = wf_total + wf  
-    #fam_total = fam_total + fam
-    #conc_total = conc_total + conc
-    #imag_total = imag_total + imag 
   }
+  
+  # loop through fam, conc, imag and add up non-zero values 
+  for(i in nrow(fam_tscript)) if(as.integer(fam_tscript[i,1])>0) {
+    fam_total = fam_total + as.integer(fam_tscript[i,1])
+    print(fam_tscript[i,1])
+  }
+  for(i in nrow(conc_tscript)) if(as.integer(conc_tscript[i,1])>0) conc_total = conc_total + as.integer(conc_tscript[i,1])
+  for(i in nrow(imag_tscript)) if(as.integer(imag_tscript[i,1])>0) imag_total = imag_total + as.integer(imag_tscript[i,1])
   
   # calculate averages for file from total points 
   avg_phon <- phon_total/nrow(phonetic_tscript)
-  avg_wf <- wf_total/nrow(wf_tscript) 
-  #avg_fam <- avg_conc <- avg_imag <- 0 
-  
-  #if(nrow(avg_fam)==0) {  # believe they should all have same num rows 
-    #avg_fam = fam_total/nrow(fam_tscript)
-    #avg_conc = conc_total/nrow(conc_tscript)
-    #avg_imag = imag_total/nrow(imag_tscript)
-  #}
-  
+  avg_wf <- wf_total/nrow(wf_tscript)
+  avg_fam <- fam_total/(nrow(fam_tscript)-fam_null) 
+  avg_conc <- conc_total/(nrow(conc_tscript)-conc_null)
+  avg_imag <- imag_total/(nrow(imag_tscript)-imag_null) 
   
   # write output and file name to data frame  
-  data[file,1] = nrow(text_df)
+  data[file,1] = as.integer(nrow(text_df))
   data[file,2] = nrow(phonetic_tscript)
   data[file,3] = avg_phon
   data[file,4] = avg_wf 
-  #TO DO assign values to imag/conc etc 
+  data[file,5] = avg_fam
+  data[file,6] = avg_conc
+  data[file,7] = avg_imag
 }
 
 # write output to file and save to same location as .txt files 
-write.csv(data, file=paste(data_path, "/", "wcm_ouput.csv", sep=""))
+write.csv(data, file=paste(data_path, "/", "wcm_output.csv", sep=""))
 #write.csv(word_by_word, file=paste(data_path, "/", "word_by_word.csv", sep=""))
