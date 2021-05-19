@@ -24,15 +24,21 @@ word_db <- read.csv('UNCCombWordDB.csv', na.strings=c("", "NA"))
 # TO DO: fill in arguments of data.path with path to directory containing .txt files, leaving first argument blank 
 # for example: /Users/folder1/folder2 -> data_path("", "Users", "folder1", "folder2")
 data_path <- file.path("", "Users", "lindsaygreene", "Desktop")
-files <- list.files(path=data_path, pattern="*.txt")
 
-# TO DO: add avg imag/conc/fam headers 
+
+# TO DO: add avg imag/conc/fam headers and change ncol  
+# set up data frame to store results 
+data <- data.frame(matrix(vector(), ncol=4, nrow=length(files)))  # data frame to store output  
+files <- list.files(path=data_path, pattern="*.txt")
 header_names <- list("Total_Words_in_Tscript", "Total_Words_Found_in_DB","Avg_Phon_Score", 
                     "Avg_WF_Score")  # column headers for data frame
-data <- data.frame(matrix(vector(), ncol=4, nrow=length(files)))  # data frame we will populate with data for each file 
 colnames(data) <- header_names
 rownames(data) <- files
-row_count <- 0  # keep track of rows in data frame 
+
+# set up word by word analysis 
+word_by_word <- data.frame(matrix(vector(), ncol=2))
+names <- list("klattese", "wcm_score")
+rownames(word_by_word) <- names
 
 for (file in 1:length(files)){
   
@@ -141,6 +147,10 @@ for (file in 1:length(files)){
     
     # END algorithm to calculate points for the word 
     
+    # store info in word by word output 
+    word_by_word[word, 1] = klattese
+    word_by_word[word, 2] = phon_points
+    
     # adding points for current word to cumulative total 
     phon_total = phon_total + phon_points 
     wf_total = wf_total + wf  
@@ -171,3 +181,4 @@ for (file in 1:length(files)){
 
 # write output to file and save to same location as .txt files 
 write.csv(data, file=paste(data_path, "/", "wcm_ouput.csv", sep=""))
+#write.csv(word_by_word, file=paste(data_path, "/", "word_by_word.csv", sep=""))
