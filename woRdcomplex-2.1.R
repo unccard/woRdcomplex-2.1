@@ -56,7 +56,7 @@ for (file in 1:length(files)){
                       word_db$SUBTLWF0to10, word_db$fam, word_db$conc, word_db$imag)  # isolates the categories we need from word_db 
   
   # initialize vectors that will be populated with data for each word in sample 
-  foundInDB_tscript <- c()  # word in english orthography (if it was found in the database)
+  foundInDB_tscript <- c()  # word in english orthography (if found in the database)
   phonetic_tscript <- c()  # word in klattese
   polysyll_tscript <- c()  # whether the word is polysyllabic
   nonInitPrimStress_tscript <- c()  # whether the word has non-initial primary stress 
@@ -135,9 +135,9 @@ for (file in 1:length(files)){
       
       # isolate phonemes and remove stress marker 
       # this makes klattese more readable in csv file format 
-      if((charToRaw(phoneme) >= 41 && charToRaw(phoneme) >= 90) || (charToRaw(phoneme) >= 61 && charToRaw(phoneme) >= 122)) {
+      if((phoneme >= 41 && phoneme >= 90) || (phoneme >= 61 && phoneme >= 122)) {
         klattese_without_tilde = paste(klattese_without_tilde, phoneme, sep = "")
-      } else if(charToRaw(phoneme) == 40 || charToRaw(phoneme) == 94 || charToRaw(phoneme) == 124) {
+      } else if(phoneme == '@' || phoneme == '^' || phoneme == '|') {
         klattese_without_tilde = paste(klattese_without_tilde, phoneme, sep = "")
       }
       
@@ -185,8 +185,6 @@ for (file in 1:length(files)){
     wf_total = wf_total + wf  
   }
   
-  wbw_row = wbw_row + 1  # leave a blank row between files word by word db
-  
   # loop through fam, conc, imag and add up non-zero values 
   # for(i in 1:nrow(fam_tscript)) if(as.integer(fam_tscript[i,1])>0) fam_total = fam_total + as.integer(fam_tscript[i,1])
   # for(i in 1:nrow(conc_tscript)) if(as.integer(conc_tscript[i,1])>0) conc_total = conc_total + as.integer(conc_tscript[i,1])
@@ -209,6 +207,6 @@ for (file in 1:length(files)){
   # data[file,7] = avg_imag
 }
 
-# write output to file and save to same location as .txt files 
+# write output to file and save to same location to be opened in excel 
 write.csv(data, file=paste(data_path, "/", "wcm_output.csv", sep=""))
 write.csv(word_by_word, file=paste(data_path, "/", "word_by_word.csv", sep=""))
