@@ -3,17 +3,16 @@
 # Copyright (C) 2021. Lindsay Greene
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation. AMDG. 
 # Script calculates the edit distance ratio for intelligible words in a sample. 
-# Requires CSV file "UNCCombWordDB.csv" and that the user specify a file path on line 27.  
+# Requires CSV file "UNCCombWordDB.csv" and that the user specify a file path on line 26.  
 
 library(tidyr)
 library(tidytext)
 library(stringr)
 library(dplyr)
-library("xlsx")
 
 # phoneme categories 
 engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
-engl_voiced_cons <- c("b","d","D","g","J","l","m","n","G","r","v","w","y","z","Z")
+engl_voiced_cons <- c("b","d","D", "F","g","J","l","m","n","G","r","v","w","y","z","Z")
 engl_syll_cons <- c("L", "M", "N", "R")
 engl_fricatives <- c("D","f","h","s","S","T","v","z","Z")
 engl_affricates <- c("C","J")
@@ -36,9 +35,11 @@ rownames(data) <- files
 
 # set up word by word analysis 
 word_by_word <- data.frame(matrix(vector(), ncol=5))  # data frame to store info ab individual words from each transcript
-names <- list("File_Name", "Word", "Phonetic_Word", "WCM_Score", "Word_Frequency")  # column headers for word by word df 
+#names <- list("File_Name", "Target_Word", "Target_Klattese", "Actual_Klattese","Target_WCM_Score", 
+              #"Actual_WCM_Score", "WCM_Ratio","Word_Frequency")  # column headers for word by word df 
+names <- list("File_Name", "Target_Word", "Target_Klattese", "Target_WCM_Score", "Word_Frequency")
 colnames(word_by_word) <- names
-wbw_row = 1  # count num rows in word by word db 
+wbw_row = 1  # count number of rows in word by word db 
 
 for (file in 1:length(files)){
   
@@ -66,7 +67,7 @@ for (file in 1:length(files)){
   #imag_tscript <- c()
   
   # initialize cumulative points for each file 
-  phon_total <- wf_total <- fam_total <- conc_total <- imag_total <- 0 
+  target_wcm_total <- wf_total <- fam_total <- conc_total <- imag_total <- 0 
   
   # populate vectors with data for each word in the transcript 
   for(i in 1:nrow(text_df)) {
@@ -113,10 +114,10 @@ for (file in 1:length(files)){
   for (word in 1:nrow(phonetic_tscript)){
     
     klattese <- phonetic_tscript[word,1]
-    klattese_without_tilde <- ""  # klattese word minus stress marker 
+    target_klattese_readable <- ""  # klattese word minus stress and syllable marker 
     
     # initialize cumulative points for each word in file 
-    phon_points <- 0 
+    target_points <- 0 
     
     # isolate data specific to current word    
     len <- str_length(klattese)  # number of characters in the word 
@@ -126,8 +127,8 @@ for (file in 1:length(files)){
     
     # BEGIN algorithm to calculate points for the word 
     
-    if (polysyll == 1) phon_points=phon_points+1  # word patterns (1)
-    if (nonInitPrimStress == 1) phon_points=phon_points+1  # word patterns (2)
+    if (polysyll == 1) target_points=target_points+1  # word patterns (1)
+    if (nonInitPrimStress == 1) target_points=target_points+1  # word patterns (2)
      
     # for loop to find consonant clusters and sound classes 
     for (index in 1:len) {
@@ -136,14 +137,14 @@ for (file in 1:length(files)){
       # isolate phonemes and remove stress marker 
       # this makes klattese more readable in csv file format 
       if((phoneme >= 41 && phoneme >= 90) || (phoneme >= 61 && phoneme >= 122)) {
-        klattese_without_tilde = paste(klattese_without_tilde, phoneme, sep = "")
+        target_klattese_readable = paste(target_klattese_readable, phoneme, sep = "")
       } else if(phoneme == '@' || phoneme == '^' || phoneme == '|') {
-        klattese_without_tilde = paste(klattese_without_tilde, phoneme, sep = "")
+        target_klattese_readable = paste(target_klattese_readable, phoneme, sep = "")
       }
       
       if (index == len) {
         if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons | phoneme %in% engl_syll_cons) { 
-          phon_points=phon_points+1  # syllable structures (1)
+          target_points=target_points+1  # syllable structures (1)
         } 
       }
       if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons) {
@@ -157,14 +158,14 @@ for (file in 1:length(files)){
           } 
           else break
         }
-        if (is_cluster) phon_points=phon_points+1  # syllable structures (2)
+        if (is_cluster) target_points=target_points+1  # syllable structures (2)
       }
-      if (phoneme %in% engl_velars) phon_points=phon_points+1  # sound classes (1)
-      if (phoneme %in% engl_liquids) phon_points=phon_points+1  # sound classes (2)
+      if (phoneme %in% engl_velars) target_points=target_points+1  # sound classes (1)
+      if (phoneme %in% engl_liquids) target_points=target_points+1  # sound classes (2)
       if (phoneme %in% engl_fricatives | phoneme %in% engl_affricates) {
-        phon_points=phon_points+1  # sound classes (3)
+        target_points=target_points+1  # sound classes (3)
         if (phoneme %in% engl_voiced_cons) {
-          phon_points=phon_points+1  # sound classes (4)
+          target_points=target_points+1  # sound classes (4)
         }
       }
     }
@@ -174,15 +175,19 @@ for (file in 1:length(files)){
     # store info in word by word output 
     word_by_word[wbw_row, 1] = fileName
     word_by_word[wbw_row, 2] = foundInDB_tscript[word, 1]
-    word_by_word[wbw_row, 3] = klattese_without_tilde
-    word_by_word[wbw_row, 4] = phon_points
+    word_by_word[wbw_row, 3] = target_klattese_readable
+    # word_by_word[wbw_row, 4] = actual_klattese_readable
+    word_by_word[wbw_row, 4] = target_points
+    # word_by_word[wbw_row, 6] = actual_points
+    # word_by_word[wbw_row, 7] = wcm_ratio
     word_by_word[wbw_row, 5] = wf
     
-    wbw_row = wbw_row + 1  # move to next row in database
-    
     # adding points for current word to cumulative total 
-    phon_total = phon_total + phon_points 
+    target_wcm_total = target_wcm_total + target_points 
+    # actual_wcm_total = actual_wcm_total + actual_points
     wf_total = wf_total + wf  
+    
+    wbw_row = wbw_row + 1  # move to next row in database
   }
   
   # loop through fam, conc, imag and add up non-zero values 
@@ -191,7 +196,7 @@ for (file in 1:length(files)){
   # for(i in 1:nrow(imag_tscript)) if(as.integer(imag_tscript[i,1])>0) imag_total = imag_total + as.integer(imag_tscript[i,1])
 
   # calculate averages for file from total points 
-  avg_phon <- phon_total/nrow(phonetic_tscript)
+  avg_target_wcm <- target_wcm_total/nrow(phonetic_tscript)
   avg_wf <- wf_total/nrow(wf_tscript)
   # avg_fam <- fam_total/(nrow(fam_tscript)-fam_null) 
   # avg_conc <- conc_total/(nrow(conc_tscript)-conc_null)
@@ -200,7 +205,7 @@ for (file in 1:length(files)){
   # write output and file name to avg output data frame  
   data[file,1] = nrow(text_df)
   data[file,2] = nrow(phonetic_tscript)
-  data[file,3] = avg_phon
+  data[file,3] = avg_target_wcm
   data[file,4] = avg_wf 
   # data[file,5] = avg_fam
   # data[file,6] = avg_conc
