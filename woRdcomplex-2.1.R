@@ -9,6 +9,7 @@ library(tidyr)
 library(tidytext)
 library(stringr)
 library(dplyr)
+#library(tokenizers)
 
 # phoneme categories 
 engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
@@ -23,8 +24,8 @@ word_db <- read.csv('UNCCombWordDB.csv', na.strings=c("", "NA"))
 
 # TO DO: fill in arguments of data.path with path to directory containing .txt files, leaving first argument blank 
 # for example: /Users/folder1/folder2 -> data_path("", "Users", "folder1", "folder2")
-#data_path <- file.path("", "Users", "lindsaygreene", "Desktop")
-data_path <- file.path("", "Users", "lindsaygreene", "Desktop", "programming", "woRdcomplexity", "woRdcomplex-2.1")
+data_path <- file.path("", "Users", "lindsaygreene", "Desktop")
+# data_path <- file.path("", "Users", "lindsaygreene", "Desktop", "programming", "woRdcomplexity", "woRdcomplex-2.1")
 
 # set up data frame to store results 
 data <- data.frame(matrix(vector(), ncol=7, nrow=length(files)))  # data frame to store avg output  
@@ -49,9 +50,11 @@ for (file in 1:length(files)){
   
   # read and store text from file 
   sample <- readChar(filePath, file.info(filePath)$size)
-  sample <- sample.rstrip('\r\n')
-  sample <- as.character(sample)  # returns sample as text representation
-  sample <- str_to_lower(sample, locale="en")  # convert sample to lowercase to match DB file 
+  #tokenized_sample <- tokenize_words(sample)
+  #sample <- sample.rstrip('\r\n')
+  #sample <- as.character(sample)  # returns sample as text representation
+  #tokenized_sample <- str_to_lower(sample, locale="en")  # convert sample to lowercase to match DB file 
+  
   
   text_df<-tibble(text=sample)  # convert sample to tibble (a simple data frame) 
   text_df <-text_df%>%  # way of filtering the data 
@@ -65,6 +68,8 @@ for (file in 1:length(files)){
   polysyll_tscript <- c()  # whether the word is polysyllabic
   nonInitPrimStress_tscript <- c()  # whether the word has non-initial primary stress 
   wf_tscript <- c()  # frequency of the word 
+  
+  stripped_words <- c()
   #fam_tscript <- c()
   #conc_tscript <- c()
   #imag_tscript <- c()
@@ -74,7 +79,8 @@ for (file in 1:length(files)){
   
   # populate vectors with data for each word in the transcript 
   for(i in 1:nrow(text_df)) {
-    word <- toString(text_df[i,1])
+    word <- str_trim(toString(text_df[i,1]), "right")
+    stripped_words <- append(word, stripped_words[i, 1])
     row <- which(tibbletest[,1] == word)
     if(!identical(toString(tibbletest[row, 2]),"character(0)")){  # omit words not found in word_db
       foundInDB_tscript <- append(foundInDB_tscript, toString(tibbletest[row, 1]))
