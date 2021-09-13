@@ -23,7 +23,8 @@ word_db <- read.csv('UNCCombWordDB.csv', na.strings=c("", "NA"))
 
 # TO DO: fill in arguments of data.path with path to directory containing .txt files, leaving first argument blank 
 # for example: /Users/folder1/folder2 -> data_path("", "Users", "folder1", "folder2")
-data_path <- file.path("", "Users", "lindsaygreene", "Desktop")
+#data_path <- file.path("", "Users", "lindsaygreene", "Desktop")
+data_path <- file.path("", "Users", "lindsaygreene", "Desktop", "programming", "woRdcomplexity", "woRdcomplex-2.1")
 
 # set up data frame to store results 
 data <- data.frame(matrix(vector(), ncol=7, nrow=length(files)))  # data frame to store avg output  
@@ -48,8 +49,10 @@ for (file in 1:length(files)){
   
   # read and store text from file 
   sample <- readChar(filePath, file.info(filePath)$size)
-  sample<-as.character(sample)  # returns sample as text representation
-  sample<-str_to_lower(sample, locale="en")  # convert sample to lowercase to match DB file 
+  sample <- sample.rstrip('\r\n')
+  sample <- as.character(sample)  # returns sample as text representation
+  sample <- str_to_lower(sample, locale="en")  # convert sample to lowercase to match DB file 
+  
   text_df<-tibble(text=sample)  # convert sample to tibble (a simple data frame) 
   text_df <-text_df%>%  # way of filtering the data 
   unnest_tokens(word, text)  # break the column into one word per row 
