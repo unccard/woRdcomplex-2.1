@@ -9,18 +9,17 @@ library(tidyr)
 library(tidytext)
 library(stringr)
 library(dplyr)
-library("xlsx")
 
 # phoneme categories 
 engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
-engl_voiced_cons <- c("b","d","D","g","J","l","m","n","G","r","v","w","y","z","Z")
-engl_syll_cons <- c("L", "M", "N", "R")
+engl_voiced_cons <- c("b","d","D","g","J","l","m","n","G","r","v","w","y","z","Z")  # F for the flap/tap?
+engl_syll_cons <- c("L", "M", "N", "R")  # do these count as word final consonants? 
 engl_fricatives <- c("D","f","h","s","S","T","v","z","Z")
 engl_affricates <- c("C","J")
 engl_velars <- c("k","g","G")
 engl_liquids <- c("l","L","r","R","X")
 
-word_db <- read.csv('UNCCombWordDB.csv', na.strings=c("", "NA"))
+word_db <- read.csv('/Users/lindsaygreene/Desktop/programming/woRdcomplexity/woRdcomplex-2.1/UNCCombWordDB.csv', na.strings=c("", "NA"))
 
 # TO DO: fill in arguments of data.path with path to directory containing .txt files, leaving first argument blank 
 # for example: /Users/folder1/folder2 -> data_path("", "Users", "folder1", "folder2")
@@ -128,37 +127,32 @@ for (file in 1:length(files)){
     
     if (polysyll == 1) phon_points=phon_points+1  # word patterns (1)
     if (nonInitPrimStress == 1) phon_points=phon_points+1  # word patterns (2)
+    
+    final_phoneme <- substr(klattese, len, len)
+    if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons | phoneme %in% engl_syll_cons) { 
+      phon_points=phon_points+1  # syllable structures (1)
+    } 
+    
+    
+    split <- strsplit(klattese, "([iIEe@aWY^cOoUuRx|X\\ˈ]+|-+)+")  # regular expression to isolate consonants 
+    for(i in 1:length(split[[1]])) {
+      if(str_length(split[[1]][i]) > 1) { 
+        phon_points = phon_points + 1  # syllable structures (2)
+      }
+    }
      
-    # for loop to find consonant clusters and sound classes 
+    # for loop to assign points for sound classes 
     for (index in 1:len) {
       phoneme <- substr(klattese, index, index)
       
-      # isolate phonemes and remove stress marker 
-      # this makes klattese more readable in csv file format 
+      # isolate phonemes and remove stress marker to make Klattese more readable in csv file format 
       if((phoneme >= 41 && phoneme >= 90) || (phoneme >= 61 && phoneme >= 122)) {
         klattese_without_tilde = paste(klattese_without_tilde, phoneme, sep = "")
       } else if(phoneme == '@' || phoneme == '^' || phoneme == '|') {
         klattese_without_tilde = paste(klattese_without_tilde, phoneme, sep = "")
       }
       
-      if (index == len) {
-        if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons | phoneme %in% engl_syll_cons) { 
-          phon_points=phon_points+1  # syllable structures (1)
-        } 
-      }
-      if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons) {
-        i <- index
-        is_cluster <- FALSE 
-        while (i < len) {
-          next_phon <- substr(klattese, i+1, i+1)
-          if (next_phon %in% engl_voiced_cons | next_phon %in% engl_voiceless_cons) {
-            i=i+1
-            is_cluster <- TRUE
-          } 
-          else break
-        }
-        if (is_cluster) phon_points=phon_points+1  # syllable structures (2)
-      }
+      # WCM rules for sound classes 
       if (phoneme %in% engl_velars) phon_points=phon_points+1  # sound classes (1)
       if (phoneme %in% engl_liquids) phon_points=phon_points+1  # sound classes (2)
       if (phoneme %in% engl_fricatives | phoneme %in% engl_affricates) {
