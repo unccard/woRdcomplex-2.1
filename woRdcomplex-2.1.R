@@ -3,7 +3,7 @@
 # Copyright (C) 2021. Lindsay Greene
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation. AMDG. 
 # Script calculates the edit distance ratio for intelligible words in a sample. 
-# Requires CSV file "UNCCombWordDB.csv" and that the user specify a file path on line 27.  
+# Requires CSV file "UNCCombWordDB.csv" and that the user specify a file path on line 26.  
 
 library(tidyr)
 library(tidytext)
@@ -12,8 +12,8 @@ library(dplyr)
 
 # phoneme categories 
 engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
-engl_voiced_cons <- c("b","d","D","g","J","l","m","n","G","r","v","w","y","z","Z")  # F for the flap/tap?
-engl_syll_cons <- c("L", "M", "N", "R")  # do these count as word final consonants? 
+engl_voiced_cons <- c("b","d","D","g","J","l","m","n","G","r","v","w","y","z","Z")
+engl_syll_cons <- c("L", "M", "N", "R") 
 engl_fricatives <- c("D","f","h","s","S","T","v","z","Z")
 engl_affricates <- c("C","J")
 engl_velars <- c("k","g","G")
@@ -25,7 +25,7 @@ word_db <- read.csv('/Users/lindsaygreene/Desktop/programming/woRdcomplexity/woR
 # for example: /Users/folder1/folder2 -> data_path("", "Users", "folder1", "folder2")
 data_path <- file.path("", "Users", "lindsaygreene", "Desktop")
 
-# set up data frame to store results 
+# set up data frame to store average results  
 data <- data.frame(matrix(vector(), ncol=7, nrow=length(files)))  # data frame to store avg output  
 files <- list.files(path=data_path, pattern="*.txt")
 header_names <- list("Total_Words_in_Tscript", "Total_Words_Found_in_DB","Avg_Phon_Score", 
@@ -33,11 +33,11 @@ header_names <- list("Total_Words_in_Tscript", "Total_Words_Found_in_DB","Avg_Ph
 colnames(data) <- header_names
 rownames(data) <- files
 
-# set up word by word analysis 
+# set up data frame to store word by word results 
 word_by_word <- data.frame(matrix(vector(), ncol=5))  # data frame to store info ab individual words from each transcript
 names <- list("File_Name", "Word", "Phonetic_Word", "WCM_Score", "Word_Frequency")  # column headers for word by word df 
 colnames(word_by_word) <- names
-wbw_row = 1  # count num rows in word by word db 
+wbw_row = 1  # count number of rows in word by word db 
 
 for (file in 1:length(files)){
   
@@ -49,17 +49,17 @@ for (file in 1:length(files)){
   sample<-as.character(sample)  # returns sample as text representation
   sample<-str_to_lower(sample, locale="en")  # convert sample to lowercase to match DB file 
   text_df<-tibble(text=sample)  # convert sample to tibble (a simple data frame) 
-  text_df <-text_df%>%  # way of filtering the data 
+  text_df <-text_df%>%  # way of filtering the data in dplyr 
   unnest_tokens(word, text)  # break the column into one word per row 
   tibbletest <-tibble(word_db$word, word_db$phon_klattese, word_db$polysyll, word_db$nonInitialPrimaryStress, 
                       word_db$SUBTLWF0to10, word_db$fam, word_db$conc, word_db$imag)  # isolates the categories we need from word_db 
   
   # initialize vectors that will be populated with data for each word in sample 
-  foundInDB_tscript <- c()  # word in english orthography (if found in the database)
-  phonetic_tscript <- c()  # word in klattese
-  polysyll_tscript <- c()  # whether the word is polysyllabic
-  nonInitPrimStress_tscript <- c()  # whether the word has non-initial primary stress 
-  wf_tscript <- c()  # frequency of the word 
+  foundInDB_tscript <- c()  # each word in English orthography (if found in the database)
+  phonetic_tscript <- c()  # each word in Klattese
+  polysyll_tscript <- c()  # whether each word is polysyllabic
+  nonInitPrimStress_tscript <- c()  # whether each word has non-initial primary stress 
+  wf_tscript <- c()  # frequency of each word 
   #fam_tscript <- c()
   #conc_tscript <- c()
   #imag_tscript <- c()
@@ -112,15 +112,15 @@ for (file in 1:length(files)){
   for (word in 1:nrow(phonetic_tscript)){
     
     klattese <- phonetic_tscript[word,1]
-    klattese_without_tilde <- ""  # klattese word minus stress marker 
+    klattese_without_tilde <- ""  # Klattese word minus stress & syllable markers for readability  
     
     # initialize cumulative points for each word in file 
     phon_points <- 0 
     
     # isolate data specific to current word    
     len <- str_length(klattese)  # number of characters in the word 
-    polysyll <- polysyll_tscript[word,1]  # if polysyllabic 
-    nonInitPrimStress <- nonInitPrimStress_tscript[word,1]  # if non-initial stress
+    polysyll <- polysyll_tscript[word,1]  # if the word is polysyllabic 
+    nonInitPrimStress <- nonInitPrimStress_tscript[word,1]  # if the word has non-initial stress
     wf <- as.double(wf_tscript[word,1])
     
     # BEGIN algorithm to calculate points for the word 
@@ -128,12 +128,13 @@ for (file in 1:length(files)){
     if (polysyll == 1) phon_points=phon_points+1  # word patterns (1)
     if (nonInitPrimStress == 1) phon_points=phon_points+1  # word patterns (2)
     
+    # if the word ends in a consonant 
     final_phoneme <- substr(klattese, len, len)
     if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons | phoneme %in% engl_syll_cons) { 
       phon_points=phon_points+1  # syllable structures (1)
     } 
     
-    
+    # if the word has consonant clusters 
     split <- strsplit(klattese, "([iIEe@aWY^cOoUuRx|X\\ˈ]+|-+)+")  # regular expression to isolate consonants 
     for(i in 1:length(split[[1]])) {
       if(str_length(split[[1]][i]) > 1) { 
@@ -172,7 +173,7 @@ for (file in 1:length(files)){
     word_by_word[wbw_row, 4] = phon_points
     word_by_word[wbw_row, 5] = wf
     
-    wbw_row = wbw_row + 1  # move to next row in database
+    wbw_row = wbw_row + 1  # move to next row in the word by word df 
     
     # adding points for current word to cumulative total 
     phon_total = phon_total + phon_points 
