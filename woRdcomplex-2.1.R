@@ -12,8 +12,8 @@ library(dplyr)
 
 # phoneme categories 
 engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
-engl_voiced_cons <- c("b","d","D","g","J","l","m","n","G","r","v","w","y","z","Z")
-engl_syll_cons <- c("L", "M", "N", "R") 
+engl_voiced_cons <- c("b","d","D","F","g","J","l","M","m","N","n","G","r","v","w","y","z","Z")  # word final M and N? 
+# engl_syll_cons <- c("L", "M", "N", "R") 
 engl_fricatives <- c("D","f","h","s","S","T","v","z","Z")
 engl_affricates <- c("C","J")
 engl_velars <- c("k","g","G")
@@ -26,10 +26,9 @@ word_db <- read.csv('/Users/lindsaygreene/Desktop/programming/woRdcomplexity/woR
 data_path <- file.path("", "Users", "lindsaygreene", "Desktop")
 
 # set up data frame to store average results  
-data <- data.frame(matrix(vector(), ncol=7, nrow=length(files)))  # data frame to store avg output  
+data <- data.frame(matrix(vector(), ncol=4, nrow=length(files)))  # data frame to store avg output  
 files <- list.files(path=data_path, pattern="*.txt")
-header_names <- list("Total_Words_in_Tscript", "Total_Words_Found_in_DB","Avg_Phon_Score", 
-                    "Avg_WF_Score", "Avg_Fam_Score", "Avg_Conc_Score", "Avg_Imag_Score")  # column headers for avg output df 
+header_names <- list("Total_Words_in_Tscript", "Total_Words_Found_in_DB","Avg_Phon_Score","Avg_WF_Score")  # column headers for avg output df 
 colnames(data) <- header_names
 rownames(data) <- files
 
@@ -78,9 +77,6 @@ for (file in 1:length(files)){
       nonInitPrimStress_tscript <- append(nonInitPrimStress_tscript, toString(tibbletest[row, 4]))
       wf_tscript <- append(wf_tscript, toString(tibbletest[row, 5]))
     }
-    #fam_tscript <- append(fam_tscript, toString(tibbletest[row, 6]))
-    #conc_tscript <- append(conc_tscript, toString(tibbletest[row, 7]))
-    #imag_tscript <- append(conc_tscript, toString(tibbletest[row, 8]))
   }
   
   # transform the vectors into data frames 
@@ -130,7 +126,7 @@ for (file in 1:length(files)){
     
     # if the word ends in a consonant 
     final_phoneme <- substr(klattese, len, len)
-    if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons | phoneme %in% engl_syll_cons) { 
+    if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons) { 
       phon_points=phon_points+1  # syllable structures (1)
     } 
     
