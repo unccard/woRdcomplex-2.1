@@ -51,7 +51,7 @@ for (file in 1:length(files)){
   text_df <-text_df%>%  # way of filtering the data in dplyr 
   unnest_tokens(word, text)  # break the column into one word per row 
   tibbletest <-tibble(word_db$word, word_db$phon_klattese, word_db$polysyll, word_db$nonInitialPrimaryStress, 
-                      word_db$SUBTLWF0to10, word_db$fam, word_db$conc, word_db$imag)  # isolates the categories we need from word_db 
+                      word_db$SUBTLWF0to10)  # isolates the categories we need from word_db 
   
   # initialize vectors that will be populated with data for each word in sample 
   foundInDB_tscript <- c()  # each word in English orthography (if found in the database)
