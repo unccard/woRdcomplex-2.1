@@ -59,13 +59,9 @@ for (file in 1:length(files)){
   polysyll_tscript <- c()  # whether each word is polysyllabic
   nonInitPrimStress_tscript <- c()  # whether each word has non-initial primary stress 
   wf_tscript <- c()  # frequency of each word 
-  #fam_tscript <- c()
-  #conc_tscript <- c()
-  #imag_tscript <- c()
   
   # initialize cumulative points for each file 
-  phon_total <- wf_total <- fam_total <- conc_total <- imag_total <- 0 
-  
+  phon_total <- wf_total <- 0 
   # populate vectors with data for each word in the transcript 
   for(i in 1:nrow(text_df)) {
     word <- toString(text_df[i,1])
@@ -85,24 +81,6 @@ for (file in 1:length(files)){
   polysyll_tscript<-as.data.frame(polysyll_tscript)
   nonInitPrimStress_tscript<-as.data.frame(nonInitPrimStress_tscript)
   wf_tscript<-as.data.frame(wf_tscript)
-  # fam_tscript<-as.data.frame(fam_tscript)
-  # conc_tscript<-as.data.frame(conc_tscript)
-  # imag_tscript<-as.data.frame(imag_tscript)
-  
-  # replace empty values in conc, imag, and fam with 0 
-  # fam_null <- conc_null <- imag_null <- 0
-  # for(i in 1:nrow(fam_tscript)) if(fam_tscript[i,1]=="NA" || fam_tscript[i,1]=="character(0)") {
-  #   fam_tscript[i,1] = 0
-  #   fam_null = fam_null + 1
-  # }
-  # for(i in 1:nrow(conc_tscript)) if(conc_tscript[i,1]=="NA" || conc_tscript[i,1]=="character(0)") {
-  #   conc_tscript[i,1] = 0
-  #   conc_null = conc_null + 1
-  # }
-  # for(i in 1:nrow(imag_tscript)) if(imag_tscript[i,1]=="NA" || imag_tscript[i,1]=="character(0)") {
-  #   imag_tscript[i,1] = 0
-  #   imag_null = imag_null + 1
-  # }
   
   # for loop going through each word in the phonetic transcript to calculate its scores 
   for (word in 1:nrow(phonetic_tscript)){
@@ -126,7 +104,7 @@ for (file in 1:length(files)){
     
     # if the word ends in a consonant 
     final_phoneme <- substr(klattese, len, len)
-    if (phoneme %in% engl_voiced_cons | phoneme %in% engl_voiceless_cons) { 
+    if (final_phoneme %in% engl_voiced_cons | final_phoneme %in% engl_voiceless_cons) { 
       phon_points=phon_points+1  # syllable structures (1)
     } 
     
@@ -176,26 +154,15 @@ for (file in 1:length(files)){
     wf_total = wf_total + wf  
   }
   
-  # loop through fam, conc, imag and add up non-zero values 
-  # for(i in 1:nrow(fam_tscript)) if(as.integer(fam_tscript[i,1])>0) fam_total = fam_total + as.integer(fam_tscript[i,1])
-  # for(i in 1:nrow(conc_tscript)) if(as.integer(conc_tscript[i,1])>0) conc_total = conc_total + as.integer(conc_tscript[i,1])
-  # for(i in 1:nrow(imag_tscript)) if(as.integer(imag_tscript[i,1])>0) imag_total = imag_total + as.integer(imag_tscript[i,1])
-
   # calculate averages for file from total points 
   avg_phon <- phon_total/nrow(phonetic_tscript)
   avg_wf <- wf_total/nrow(wf_tscript)
-  # avg_fam <- fam_total/(nrow(fam_tscript)-fam_null) 
-  # avg_conc <- conc_total/(nrow(conc_tscript)-conc_null)
-  # avg_imag <- imag_total/(nrow(imag_tscript)-imag_null) 
   
   # write output and file name to avg output data frame  
   data[file,1] = nrow(text_df)
   data[file,2] = nrow(phonetic_tscript)
   data[file,3] = avg_phon
   data[file,4] = avg_wf 
-  # data[file,5] = avg_fam
-  # data[file,6] = avg_conc
-  # data[file,7] = avg_imag
 }
 
 # write output to file and save to same location to be opened in excel 
