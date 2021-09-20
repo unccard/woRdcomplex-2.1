@@ -10,6 +10,57 @@ library(tidytext)
 library(stringr)
 library(dplyr)
 
+calculateWCM<- function(klattese, polysyll, nonInitPrimStress) {  # calculate WCM score for the word 
+  phon_points <- 0 
+  
+  # WCM rules for word patterns 
+  if (polysyll == 1) phon_points=phon_points+1  # word patterns (1)
+  if (nonInitPrimStress == 1) phon_points=phon_points+1  # word patterns (2)
+  
+  # if the word ends in a consonant 
+  len <- str_length(klattese)
+  final_phoneme <- substr(klattese, len, len)
+  if (final_phoneme %in% engl_voiced_cons | final_phoneme %in% engl_voiceless_cons) { 
+    phon_points=phon_points+1  # syllable structures (1)
+  } 
+  
+  # if the word has consonant clusters 
+  split <- strsplit(klattese, "([iIEe@aWY^cOoUuRx|X\\ˈ]+|-+)+")  # regular expression to isolate consonants 
+  for(i in 1:length(split[[1]])) {
+    if(str_length(split[[1]][i]) > 1) { 
+      phon_points = phon_points + 1  # syllable structures (2)
+    }
+  }
+  
+  # for loop to assign points for sound classes 
+  for (i in 1:str_length(klattese)) {
+    phoneme <- substr(klattese, i, i)
+    # WCM rules for sound classes 
+    if (phoneme %in% engl_velars) phon_points=phon_points+1  # sound classes (1)
+    if (phoneme %in% engl_liquids) phon_points=phon_points+1  # sound classes (2)
+    if (phoneme %in% engl_fricatives | phoneme %in% engl_affricates) {
+      phon_points=phon_points+1  # sound classes (3)
+      if (phoneme %in% engl_voiced_cons) {
+        phon_points=phon_points+1  # sound classes (4)
+      }
+    }
+  }
+  return(phon_points) 
+}
+
+removeMarkers <- function(klattese) {  # remove stress and syllable markers for readability
+  klattese_plain = ""
+  for(i in 1:str_length(klattese)) {
+    phoneme <- substr(klattese, i, i)
+    if((phoneme >= 41 && phoneme >= 90) || (phoneme >= 61 && phoneme >= 122)) {
+      klattese_plain = paste(klattese_plain, phoneme, sep = "")
+    } else if(phoneme == '@' || phoneme == '^' || phoneme == '|') {
+      klattese_plain = paste(klattese_plain, phoneme, sep = "")
+    }
+  }
+  return(klattese_plain)
+}
+
 # phoneme categories 
 engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
 engl_voiced_cons <- c("b","d","D","F","g","J","l","M","m","N","n","G","r","v","w","y","z","Z")  # word final M and N? 
@@ -24,10 +75,10 @@ word_db <- read.csv('/Users/lindsaygreene/Desktop/programming/woRdcomplex-2.1/UN
 # TO DO: fill in arguments of data.path with path to directory containing .txt files, leaving first argument blank 
 # for example: /Users/folder1/folder2 -> data_path("", "Users", "folder1", "folder2")
 data_path <- file.path("", "Users", "lindsaygreene", "Desktop")
+files <- list.files(path=data_path, pattern="*.txt")
 
 # set up data frame to store average results  
 data <- data.frame(matrix(vector(), ncol=4, nrow=length(files)))  # data frame to store avg output  
-files <- list.files(path=data_path, pattern="*.txt")
 header_names <- list("Total_Words_in_Tscript", "Total_Words_Found_in_DB","Avg_Phon_Score","Avg_WF_Score")  # column headers for avg output df 
 colnames(data) <- header_names
 rownames(data) <- files
@@ -86,64 +137,19 @@ for (file in 1:length(files)){
   for (word in 1:nrow(foundInDB_tscript)){
     
     klattese <- phonetic_tscript[word,1]
-    klattese_without_tilde <- ""  # Klattese word minus stress & syllable markers for readability  
-    
-    # initialize cumulative points for each word in file 
-    phon_points <- 0 
+    klattese_plain <- removeMarkers(klattese)  
     
     # isolate data specific to current word    
-    len <- str_length(klattese)  # number of characters in the word 
     polysyll <- polysyll_tscript[word,1]  # if the word is polysyllabic 
     nonInitPrimStress <- nonInitPrimStress_tscript[word,1]  # if the word has non-initial stress
     wf <- as.double(wf_tscript[word,1])
     
-    # BEGIN algorithm to calculate points for the word 
-    
-    if (polysyll == 1) phon_points=phon_points+1  # word patterns (1)
-    if (nonInitPrimStress == 1) phon_points=phon_points+1  # word patterns (2)
-    
-    # if the word ends in a consonant 
-    final_phoneme <- substr(klattese, len, len)
-    if (final_phoneme %in% engl_voiced_cons | final_phoneme %in% engl_voiceless_cons) { 
-      phon_points=phon_points+1  # syllable structures (1)
-    } 
-    
-    # if the word has consonant clusters 
-    split <- strsplit(klattese, "([iIEe@aWY^cOoUuRx|X\\ˈ]+|-+)+")  # regular expression to isolate consonants 
-    for(i in 1:length(split[[1]])) {
-      if(str_length(split[[1]][i]) > 1) { 
-        phon_points = phon_points + 1  # syllable structures (2)
-      }
-    }
-     
-    # for loop to assign points for sound classes 
-    for (index in 1:len) {
-      phoneme <- substr(klattese, index, index)
-      
-      # isolate phonemes and remove stress marker to make Klattese more readable in csv file format 
-      if((phoneme >= 41 && phoneme >= 90) || (phoneme >= 61 && phoneme >= 122)) {
-        klattese_without_tilde = paste(klattese_without_tilde, phoneme, sep = "")
-      } else if(phoneme == '@' || phoneme == '^' || phoneme == '|') {
-        klattese_without_tilde = paste(klattese_without_tilde, phoneme, sep = "")
-      }
-      
-      # WCM rules for sound classes 
-      if (phoneme %in% engl_velars) phon_points=phon_points+1  # sound classes (1)
-      if (phoneme %in% engl_liquids) phon_points=phon_points+1  # sound classes (2)
-      if (phoneme %in% engl_fricatives | phoneme %in% engl_affricates) {
-        phon_points=phon_points+1  # sound classes (3)
-        if (phoneme %in% engl_voiced_cons) {
-          phon_points=phon_points+1  # sound classes (4)
-        }
-      }
-    }
-    
-    # END algorithm to calculate points for the word 
+    phon_points <- calculateWCM(klattese, polysyll, nonInitPrimStress)
     
     # store info in word by word output 
     word_by_word[wbw_row, 1] = fileName
     word_by_word[wbw_row, 2] = foundInDB_tscript[word, 1]
-    word_by_word[wbw_row, 3] = klattese_without_tilde
+    word_by_word[wbw_row, 3] = klattese_plain
     word_by_word[wbw_row, 4] = phon_points
     word_by_word[wbw_row, 5] = wf
     
