@@ -19,7 +19,7 @@ engl_affricates <- c("C","J")
 engl_velars <- c("k","g","G")
 engl_liquids <- c("l","L","r","R","X")
 
-word_db <- read.csv('/Users/lindsaygreene/Desktop/programming/woRdcomplexity/woRdcomplex-2.1/UNCCombWordDB.csv', na.strings=c("", "NA"))
+word_db <- read.csv('/Users/lindsaygreene/Desktop/programming/woRdcomplex-2.1/UNCCombWordDB.csv', na.strings=c("", "NA"))
 
 # TO DO: fill in arguments of data.path with path to directory containing .txt files, leaving first argument blank 
 # for example: /Users/folder1/folder2 -> data_path("", "Users", "folder1", "folder2")
@@ -83,7 +83,7 @@ for (file in 1:length(files)){
   wf_tscript<-as.data.frame(wf_tscript)
   
   # for loop going through each word in the phonetic transcript to calculate its scores 
-  for (word in 1:nrow(phonetic_tscript)){
+  for (word in 1:nrow(foundInDB_tscript)){
     
     klattese <- phonetic_tscript[word,1]
     klattese_without_tilde <- ""  # Klattese word minus stress & syllable markers for readability  
