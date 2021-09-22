@@ -10,12 +10,11 @@ library(tidytext)
 library(stringr)
 library(dplyr)
 
-calculateWCM<- function(klattese, polysyll, nonInitPrimStress) {  # calculate WCM score for the word 
+# HELPER FUNCTIONS
+calculateWCM<- function(klattese) {  # calculate WCM score for the word 
   phon_points <- 0 
-  
-  # WCM rules for word patterns 
-  if (polysyll == 1) phon_points=phon_points+1  # word patterns (1)
-  if (nonInitPrimStress == 1) phon_points=phon_points+1  # word patterns (2)
+  syllables <- 1
+  nonInitPrimStress <- 0
   
   # if the word ends in a consonant 
   len <- str_length(klattese)
@@ -32,9 +31,11 @@ calculateWCM<- function(klattese, polysyll, nonInitPrimStress) {  # calculate WC
     }
   }
   
-  # for loop to assign points for sound classes 
+  # for loop to assign points for sound classes, and find stress and syllables 
   for (i in 1:str_length(klattese)) {
     phoneme <- substr(klattese, i, i)
+    if(phoneme == '-') syllables=syllables+1
+    if(phoneme == 'ˈ' && syllables >= 2) nonInitPrimStress = 1
     # WCM rules for sound classes 
     if (phoneme %in% engl_velars) phon_points=phon_points+1  # sound classes (1)
     if (phoneme %in% engl_liquids) phon_points=phon_points+1  # sound classes (2)
@@ -45,6 +46,10 @@ calculateWCM<- function(klattese, polysyll, nonInitPrimStress) {  # calculate WC
       }
     }
   }
+  # WCM rules for word patterns 
+  if (syllables > 2) phon_points=phon_points+1  # word patterns (1)
+  if (nonInitPrimStress == 1) phon_points=phon_points+1  # word patterns (2)
+  
   return(phon_points) 
 }
 
@@ -101,14 +106,11 @@ for (file in 1:length(files)){
   text_df<-tibble(text=sample)  # convert sample to tibble (a simple data frame) 
   text_df <-text_df%>%  # way of filtering the data in dplyr 
   unnest_tokens(word, text)  # break the column into one word per row 
-  tibbletest <-tibble(word_db$word, word_db$phon_klattese, word_db$polysyll, word_db$nonInitialPrimaryStress, 
-                      word_db$SUBTLWF0to10)  # isolates the categories we need from word_db 
+  tibbletest <-tibble(word_db$word, word_db$phon_klattese, word_db$SUBTLWF0to10)  # isolate categories from word_db 
   
   # initialize vectors that will be populated with data for each word in sample 
   foundInDB_tscript <- c()  # each word in English orthography (if found in the database)
   phonetic_tscript <- c()  # each word in Klattese
-  polysyll_tscript <- c()  # whether each word is polysyllabic
-  nonInitPrimStress_tscript <- c()  # whether each word has non-initial primary stress 
   wf_tscript <- c()  # frequency of each word 
   
   # initialize cumulative points for each file 
@@ -120,31 +122,24 @@ for (file in 1:length(files)){
     if(!identical(toString(tibbletest[row, 2]),"character(0)")){  # omit words not found in word_db
       foundInDB_tscript <- append(foundInDB_tscript, toString(tibbletest[row, 1]))
       phonetic_tscript <- append(phonetic_tscript, toString(tibbletest[row, 2]))
-      polysyll_tscript <- append(polysyll_tscript, toString(tibbletest[row, 3]))
-      nonInitPrimStress_tscript <- append(nonInitPrimStress_tscript, toString(tibbletest[row, 4]))
-      wf_tscript <- append(wf_tscript, toString(tibbletest[row, 5]))
+      wf_tscript <- append(wf_tscript, toString(tibbletest[row, 3]))
     }
   }
   
   # transform the vectors into data frames 
   foundInDB_tscript<-as.data.frame(foundInDB_tscript)
   phonetic_tscript<-as.data.frame(phonetic_tscript)
-  polysyll_tscript<-as.data.frame(polysyll_tscript)
-  nonInitPrimStress_tscript<-as.data.frame(nonInitPrimStress_tscript)
   wf_tscript<-as.data.frame(wf_tscript)
   
   # for loop going through each word in the phonetic transcript to calculate its scores 
   for (word in 1:nrow(foundInDB_tscript)){
     
+    # isolate data specific to current word
     klattese <- phonetic_tscript[word,1]
     klattese_plain <- removeMarkers(klattese)  
-    
-    # isolate data specific to current word    
-    polysyll <- polysyll_tscript[word,1]  # if the word is polysyllabic 
-    nonInitPrimStress <- nonInitPrimStress_tscript[word,1]  # if the word has non-initial stress
     wf <- as.double(wf_tscript[word,1])
     
-    phon_points <- calculateWCM(klattese, polysyll, nonInitPrimStress)
+    phon_points <- calculateWCM(klattese)
     
     # store info in word by word output 
     word_by_word[wbw_row, 1] = fileName
