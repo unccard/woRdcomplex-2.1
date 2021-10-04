@@ -84,7 +84,7 @@ files <- list.files(path=data_path, pattern="*.txt")
 
 # set up data frame to store average results  
 data <- data.frame(matrix(vector(), ncol=4, nrow=length(files)))  # data frame to store avg output  
-header_names <- list("Total_Words_in_Tscript", "Total_Words_Found_in_DB","Avg_Phon_Score","Avg_WF_Score")  # column headers for avg output df 
+header_names <- list("Total_Words_in_Tscript", "Total_Words_Found_in_DB","Avg_WCM_Score","Avg_WF_Score")  # column headers for avg output df 
 colnames(data) <- header_names
 rownames(data) <- files
 
