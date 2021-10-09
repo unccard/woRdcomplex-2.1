@@ -9,62 +9,7 @@ library(tidyr)
 library(tidytext)
 library(stringr)
 library(dplyr)
-
-# HELPER FUNCTIONS
-calculateWCM<- function(klattese) {  # calculate WCM score for the word 
-  phon_points <- 0 
-  syllables <- 1
-  nonInitPrimStress <- 0
-  
-  # if the word ends in a consonant 
-  len <- str_length(klattese)
-  final_phoneme <- substr(klattese, len, len)
-  if (final_phoneme %in% engl_voiced_cons | final_phoneme %in% engl_voiceless_cons) { 
-    phon_points=phon_points+1  # syllable structures (1)
-  } 
-  
-  # if the word has consonant clusters 
-  split <- strsplit(klattese, "([iIEe@aWY^cOoUuRx|X\\ˈ]+|-+)+")  # regular expression to isolate consonants 
-  for(i in 1:length(split[[1]])) {
-    if(str_length(split[[1]][i]) > 1) { 
-      phon_points = phon_points + 1  # syllable structures (2)
-    }
-  }
-  
-  # for loop to assign points for sound classes, and find stress and syllables 
-  for (i in 1:str_length(klattese)) {
-    phoneme <- substr(klattese, i, i)
-    if(phoneme == '-') syllables=syllables+1
-    if(phoneme == 'ˈ' && syllables >= 2) nonInitPrimStress = 1
-    # WCM rules for sound classes 
-    if (phoneme %in% engl_velars) phon_points=phon_points+1  # sound classes (1)
-    if (phoneme %in% engl_liquids) phon_points=phon_points+1  # sound classes (2)
-    if (phoneme %in% engl_fricatives | phoneme %in% engl_affricates) {
-      phon_points=phon_points+1  # sound classes (3)
-      if (phoneme %in% engl_voiced_cons) {
-        phon_points=phon_points+1  # sound classes (4)
-      }
-    }
-  }
-  # WCM rules for word patterns 
-  if (syllables > 2) phon_points=phon_points+1  # word patterns (1)
-  if (nonInitPrimStress == 1) phon_points=phon_points+1  # word patterns (2)
-  
-  return(phon_points) 
-}
-
-removeMarkers <- function(klattese) {  # remove stress and syllable markers for readability
-  klattese_plain = ""
-  for(i in 1:str_length(klattese)) {
-    phoneme <- substr(klattese, i, i)
-    if((phoneme >= 41 && phoneme >= 90) || (phoneme >= 61 && phoneme >= 122)) {
-      klattese_plain = paste(klattese_plain, phoneme, sep = "")
-    } else if(phoneme == '@' || phoneme == '^' || phoneme == '|') {
-      klattese_plain = paste(klattese_plain, phoneme, sep = "")
-    }
-  }
-  return(klattese_plain)
-}
+source("functions.R")
 
 # phoneme categories 
 engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
@@ -75,8 +20,8 @@ engl_affricates <- c("C","J")
 engl_velars <- c("k","g","G")
 engl_liquids <- c("l","L","r","R","X")
 
-word_db <- read.csv('/Users/lindsaygreene/Desktop/programming/woRdcomplex-2.1/UNCWordDB-2021-10-08.csv', na.strings=c("", "NA"))
-tibbletest <-tibble(word_db$Word, word_db$KlatteseSyll, word_db$Zipf.value)  # isolate categories from word_db 
+word_db <- read.csv('UNCWordDB-2021-10-08.csv', na.strings=c("", "NA"))
+tibbletest <-tibble(word_db$Word, word_db$KlatteseSyll, word_db$KlatteseBare, word_db$Zipf.value)  # isolate categories from word_db 
 
 # TO DO: fill in arguments of data.path with path to directory containing .txt files, leaving first argument blank 
 # for example: /Users/folder1/folder2 -> data_path("", "Users", "folder1", "folder2")
@@ -108,12 +53,11 @@ for (file in 1:length(files)){
   unnest_tokens(word, text)  # break the column into one word per row 
   
   # initialize vectors that will be populated with data for each word in sample 
-  foundInDB_tscript <- c()  # each word in English orthography (if found in the database)
-  phonetic_tscript <- c()  # each word in Klattese
-  wf_tscript <- c()  # frequency of each word 
+  foundInDB_tscript <- phonetic_tscript <- phonetic_plain_tscript <- wf_tscript <- c()
   
   # initialize cumulative points for each file 
   phon_total <- wf_total <- 0 
+  
   # populate vectors with data for each word in the transcript 
   for(i in 1:nrow(text_df)) {
     word <- toString(text_df[i,1])
@@ -121,13 +65,15 @@ for (file in 1:length(files)){
     if(!identical(toString(tibbletest[row, 2]),"character(0)")){  # omit words not found in word_db
       foundInDB_tscript <- append(foundInDB_tscript, toString(tibbletest[row, 1]))
       phonetic_tscript <- append(phonetic_tscript, toString(tibbletest[row, 2]))
-      wf_tscript <- append(wf_tscript, toString(tibbletest[row, 3]))
+      phonetic_plain_tscript <- append(phonetic_plain_tscript, toString(tibbletest[row,3]))
+      wf_tscript <- append(wf_tscript, toString(tibbletest[row, 4]))
     }
   }
   
   # transform the vectors into data frames 
   foundInDB_tscript<-as.data.frame(foundInDB_tscript)
   phonetic_tscript<-as.data.frame(phonetic_tscript)
+  phonetic_plain_tscript<-as.data.frame(phonetic_plain_tscript)
   wf_tscript<-as.data.frame(wf_tscript)
   
   # for loop going through each word in the phonetic transcript to calculate its scores 
@@ -135,7 +81,7 @@ for (file in 1:length(files)){
     
     # isolate data specific to current word
     klattese <- phonetic_tscript[word,1]
-    klattese_plain <- removeMarkers(klattese)  
+    klattese_plain <- phonetic_plain_tscript[word,1]
     wf <- as.double(wf_tscript[word,1])
     
     phon_points <- calculateWCM(klattese)
