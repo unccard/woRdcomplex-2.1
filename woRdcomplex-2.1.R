@@ -76,6 +76,7 @@ engl_velars <- c("k","g","G")
 engl_liquids <- c("l","L","r","R","X")
 
 word_db <- read.csv('/Users/lindsaygreene/Desktop/programming/woRdcomplex-2.1/UNCWordDB-2021-10-08.csv', na.strings=c("", "NA"))
+tibbletest <-tibble(word_db$Word, word_db$KlatteseSyll, word_db$Zipf.value)  # isolate categories from word_db 
 
 # TO DO: fill in arguments of data.path with path to directory containing .txt files, leaving first argument blank 
 # for example: /Users/folder1/folder2 -> data_path("", "Users", "folder1", "folder2")
@@ -92,7 +93,6 @@ rownames(data) <- files
 word_by_word <- data.frame(matrix(vector(), ncol=5))  # data frame to store info ab individual words from each transcript
 names <- list("File_Name", "Word", "Phonetic_Word", "WCM_Score", "Word_Frequency")  # column headers for word by word df 
 colnames(word_by_word) <- names
-wbw_row = 1  # count number of rows in word by word db 
 
 for (file in 1:length(files)){
   
@@ -106,7 +106,6 @@ for (file in 1:length(files)){
   text_df<-tibble(text=sample)  # convert sample to tibble (a simple data frame) 
   text_df <-text_df%>%  # way of filtering the data in dplyr 
   unnest_tokens(word, text)  # break the column into one word per row 
-  tibbletest <-tibble(word_db$Word, word_db$KlatteseSyll, word_db$Zipf.value)  # isolate categories from word_db 
   
   # initialize vectors that will be populated with data for each word in sample 
   foundInDB_tscript <- c()  # each word in English orthography (if found in the database)
@@ -142,13 +141,11 @@ for (file in 1:length(files)){
     phon_points <- calculateWCM(klattese)
     
     # store info in word by word output 
-    word_by_word[wbw_row, 1] = fileName
-    word_by_word[wbw_row, 2] = foundInDB_tscript[word, 1]
-    word_by_word[wbw_row, 3] = klattese_plain
-    word_by_word[wbw_row, 4] = phon_points
-    word_by_word[wbw_row, 5] = wf
-    
-    wbw_row = wbw_row + 1  # move to next row in the word by word df 
+    word_by_word[word, 1] = fileName
+    word_by_word[word, 2] = foundInDB_tscript[word, 1]
+    word_by_word[word, 3] = klattese_plain
+    word_by_word[word, 4] = phon_points
+    word_by_word[word, 5] = wf
     
     # adding points for current word to cumulative total 
     phon_total = phon_total + phon_points 
