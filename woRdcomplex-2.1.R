@@ -3,7 +3,7 @@
 # Copyright (C) 2021. Lindsay Greene
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation. AMDG. 
 # Script calculates the edit distance ratio for intelligible words in a sample. 
-# Requires CSV file "UNCCombWordDB.csv" and that the user specify a file path on lines 78 and 82.  
+# Requires CSV file "UNCWordDB-2021-10-08.csv" and that the user specify a file path on lines 78 and 82.  
 
 library(tidyr)
 library(tidytext)
@@ -75,7 +75,7 @@ engl_affricates <- c("C","J")
 engl_velars <- c("k","g","G")
 engl_liquids <- c("l","L","r","R","X")
 
-word_db <- read.csv('/Users/lindsaygreene/Desktop/programming/woRdcomplex-2.1/UNCCombWordDB.csv', na.strings=c("", "NA"))
+word_db <- read.csv('/Users/lindsaygreene/Desktop/programming/woRdcomplex-2.1/UNCWordDB-2021-10-08.csv', na.strings=c("", "NA"))
 
 # TO DO: fill in arguments of data.path with path to directory containing .txt files, leaving first argument blank 
 # for example: /Users/folder1/folder2 -> data_path("", "Users", "folder1", "folder2")
@@ -106,7 +106,7 @@ for (file in 1:length(files)){
   text_df<-tibble(text=sample)  # convert sample to tibble (a simple data frame) 
   text_df <-text_df%>%  # way of filtering the data in dplyr 
   unnest_tokens(word, text)  # break the column into one word per row 
-  tibbletest <-tibble(word_db$word, word_db$phon_klattese, word_db$SUBTLWF0to10)  # isolate categories from word_db 
+  tibbletest <-tibble(word_db$Word, word_db$KlatteseSyll, word_db$Zipf.value)  # isolate categories from word_db 
   
   # initialize vectors that will be populated with data for each word in sample 
   foundInDB_tscript <- c()  # each word in English orthography (if found in the database)
