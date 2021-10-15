@@ -1,4 +1,13 @@
 calculateWCM<- function(klattese) {  # calculate WCM score for the word 
+  # phoneme categories 
+  engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
+  engl_voiced_cons <- c("b","d","D","F","g","J","l","M","m","N","n","G","r","v","w","y","z","Z")  # word final M and N? 
+  # engl_syll_cons <- c("L", "M", "N", "R") 
+  engl_fricatives <- c("D","f","h","s","S","T","v","z","Z")
+  engl_affricates <- c("C","J")
+  engl_velars <- c("k","g","G")
+  engl_liquids <- c("l","L","r","R","X")
+  
   phon_points <- 0 
   syllables <- 1
   nonInitPrimStress <- 0

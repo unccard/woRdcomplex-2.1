@@ -3,22 +3,13 @@
 # Copyright (C) 2021. Lindsay Greene
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation. AMDG. 
 # Script calculates the edit distance ratio for intelligible words in a sample. 
-# Requires that the user specify a file path on lines 78 and 82.  
+# Requires that the user specify a file path on line 19.  
 
 library(tidyr)
 library(tidytext)
 library(stringr)
 library(dplyr)
 source("functions.R")
-
-# phoneme categories 
-engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
-engl_voiced_cons <- c("b","d","D","F","g","J","l","M","m","N","n","G","r","v","w","y","z","Z")  # word final M and N? 
-# engl_syll_cons <- c("L", "M", "N", "R") 
-engl_fricatives <- c("D","f","h","s","S","T","v","z","Z")
-engl_affricates <- c("C","J")
-engl_velars <- c("k","g","G")
-engl_liquids <- c("l","L","r","R","X")
 
 word_db <- read.csv('UNCWordDB-2021-10-08.csv', na.strings=c("", "NA"))
 tibbletest <-tibble(word_db$Word, word_db$KlatteseSyll, word_db$KlatteseBare, word_db$Zipf.value)  # isolate categories from word_db 
