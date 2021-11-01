@@ -1,3 +1,39 @@
+createAverageDF <- function() {
+  data <- data.frame(matrix(vector(), ncol=4, nrow=length(files)))  # data frame to store avg output  
+  header_names <- list("Total_Words_in_Tscript", "Total_Words_Found_in_DB","Avg_WCM_Score","Avg_WF_Score")  # column headers for avg output df 
+  colnames(data) <- header_names
+  rownames(data) <- files
+  return(data)
+}
+
+createWordByWordDF <- function() {
+  word_by_word <- data.frame(matrix(vector(), ncol=5))  # data frame to store info ab individual words from each transcript
+  names <- list("File_Name", "Word", "Phonetic_Word", "WCM_Score", "Word_Frequency")  # column headers for word by word df 
+  colnames(word_by_word) <- names
+  return(word_by_word)
+}
+
+createReadabilityDF <- function() {
+  readability <- data.frame(matrix(vector(), ncol=5))
+  names <- list("File_Name", "ARI", "Coleman_Liau", "FK_Grade_Level", "FK_Read_Ease")
+  colnames(word_by_word) <- names
+  return(readability)
+}
+
+readInSample <- function(filePath) {
+  sample <- readChar(filePath, file.info(filePath)$size)
+  sample<-as.character(sample)  # returns sample as text representation
+  sample<-str_to_lower(sample, locale="en")  # convert sample to lowercase to match DB file
+  return(sample)
+}
+
+convertToDF(sample) {
+  text_df<-tibble(text=sample)  # convert sample to tibble (a simple data frame)
+  text_df <-text_df%>%  # way of filtering the data in dplyr
+  unnest_tokens(word, text)  # break the column into one word per row
+  return(text_df)
+}
+
 calculateWCM<- function(klattese) {  # calculate WCM score for the word 
   # phoneme categories 
   engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
