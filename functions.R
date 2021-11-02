@@ -16,7 +16,7 @@ createWordByWordDF <- function() {
 createReadabilityDF <- function() {
   readability <- data.frame(matrix(vector(), ncol=5))
   names <- list("File_Name", "ARI", "Coleman_Liau", "FK_Grade_Level", "FK_Read_Ease")
-  colnames(word_by_word) <- names
+  colnames(readability) <- names
   return(readability)
 }
 
@@ -27,14 +27,14 @@ readInSample <- function(filePath) {
   return(sample)
 }
 
-convertToDF(sample) {
+convertToDF <- function(sample){
   text_df<-tibble(text=sample)  # convert sample to tibble (a simple data frame)
   text_df <-text_df%>%  # way of filtering the data in dplyr
   unnest_tokens(word, text)  # break the column into one word per row
   return(text_df)
 }
 
-calculateWCM<- function(klattese) {  # calculate WCM score for the word 
+calculateWCM <- function(klattese) {  # calculate WCM score for the word 
   # phoneme categories 
   engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
   engl_voiced_cons <- c("b","d","D","F","g","J","l","M","m","N","n","G","r","v","w","y","z","Z")  # word final M and N? 

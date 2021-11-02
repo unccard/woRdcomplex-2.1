@@ -17,7 +17,7 @@ tibbletest <-tibble(word_db$Word, word_db$KlatteseSyll, word_db$KlatteseBare, wo
 
 # TO DO: fill in arguments of data.path with path to directory containing .txt files, leaving first argument blank 
 # for example: /Users/folder1/folder2 -> data_path("", "Users", "folder1", "folder2")
-data_path <- file.path("", "Users", "lindsaygreene", "Desktop")
+data_path <- file.path("", "Users", "lindsaygreene", "Desktop", "temp")
 files <- list.files(path=data_path, pattern="*.txt")
 
 # create data frames to store results 
@@ -31,8 +31,22 @@ for (file in 1:length(files)){
   fileName <- files[file]
   filePath <- paste(data_path, "/", fileName, sep="")  # update file name to absolute path 
   
-  #read and store text from file
+  # read and store text from file
   sample <- readInSample(filePath)
+  
+  # perform readability analysis 
+  auto_read_index <- automated_readability_index(sample)
+  coleman_liau <- coleman_liau(sample)
+  flesch_kincaid <- flesch_kincaid(sample)
+  
+  # store readability calculations 
+  readability[file, 1] = fileName
+  readability[file, 2] = auto_read_index$Readability$Automated_Readability_Index
+  readability[file, 3] = coleman_liau$Readability$Coleman_Liau
+  readability[file, 4] = flesch_kincaid$Readability$FK_grd.lvl
+  readability[file, 5] = flesch_kincaid$Readability$FK_read.ease
+  
+  # convert sample format to analyze phonological complexity
   text_df<- convertToDF(sample)
   
   # initialize vectors that will be populated with data for each word in sample
@@ -95,5 +109,6 @@ for (file in 1:length(files)){
 }
 
 # write output to file and save to same location to be opened in excel 
+write.csv(readability, file=paste(data_path, "/", "readability_output.csv", sep=""))
 write.csv(data, file=paste(data_path, "/", "wcm_output.csv", sep=""))
-write.csv(word_by_word, file=paste(data_path, "/", "word_by_word.csv", sep=""))
+write.csv(word_by_word, file=paste(data_path, "/", "word_by_word_output.csv", sep=""))
