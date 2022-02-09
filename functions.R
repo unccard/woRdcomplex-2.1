@@ -34,6 +34,51 @@ convertToDF <- function(sample){
   return(text_df)
 }
 
+rescueContraction <- function(contraction, foundInDB_tscript, phonetic_tscript, phonetic_plain_tscript) {  # format contractions for display in output file
+  isVoiced <- 1
+  engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
+  
+  word <- foundInDB_tscript[nrow(foundInDB_tscript), 1]  # the contraction stem 
+  base <- phonetic_tscript[nrow(phonetic_tscript), 1]  # base in klattese
+  bare_base <- phonetic_plain_tscript[nrow(phonetic_plain_tscript), 1]  # bare base in klattese 
+  final_phoneme <- substr(base, str_length(base), str_length(base))  # last sound in base
+  if(final_phoneme %in% engl_voiceless_cons) isVoiced <- 0
+  
+  # add the correct pronunciation of the contraction to the klattese, and format english 
+  if(contraction == "s") {
+    word <- paste(word, "'s", sep="")
+    if(isVoiced == 1) {
+      base <- paste(base, "z", sep="")
+      bare_base <- paste(bare_base, "z", sep="")
+    } else {
+      base <- paste(base, "s", sep = "")
+      bare_base <- paste(bare_base, "s", sep="")
+    }
+  } else if(contraction == "d") {
+    word <- paste(word, "'d", sep="")
+    base <- paste(base, "d", sep="")
+    bare_base <- paste(bare_base, "d", sep="")
+  } else if(contraction == "t") {
+    word <- paste(word, "'t", sep="")
+    base <- paste(base, "t", sep="")
+    bare_base <- paste(bare_base, "t", sep="")
+  } else if(contraction == "ve") {
+    word <- paste(word, "'ve", sep="")
+    base <- paste(base, "v", sep="")
+    bare_base <- paste(bare_base, "v", sep="")
+  } 
+  else {  # contraction is "ll"
+    word <- paste(word, "'ll", sep="")
+    base <- paste(base, "L", sep="")  
+    bare_base <- paste(bare_base, "L", sep="")
+  }
+  
+  # Replace the values in transcripts with rescued contractions
+  foundInDB_tscript[nrow(foundInDB_tscript), 1] <- word
+  phonetic_tscript[nrow(phonetic_tscript), 1] <- base
+  phonetic_plain_tscript[nrow(phonetic_plain_tscript), 1] <- bare_base
+}
+
 calculateWCM <- function(klattese) {  # calculate WCM score for the word 
   # phoneme categories 
   engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")

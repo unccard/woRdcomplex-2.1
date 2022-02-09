@@ -48,6 +48,8 @@ for (file in 1:length(files)){
   
   # convert sample format to analyze phonological complexity
   text_df<- convertToDF(sample)
+  is_contraction <- is_nt_contraction <- 0
+  cont_stem <- cont_suffix <- ""
   
   # initialize vectors that will be populated with data for each word in sample
   foundInDB_tscript <- phonetic_tscript <- phonetic_plain_tscript <- wf_tscript <- c()
@@ -55,13 +57,51 @@ for (file in 1:length(files)){
   # populate vectors with data for each word in the transcript
   for(i in 1:nrow(text_df)) {
     word <- toString(text_df[i,1])
+    print(word)
+    
+    # if we have a contracted suffix such as "t" 
+    if(is_contraction == 1) {
+      is_contraction = 0  # reset the flag
+      next  # skip the contraction 
+    }
+    
+    # if word contains apostrophe, then it is a contraction 
+    if(grepl("'", word, fixed=TRUE)) {
+      is_contraction = 1
+      parts = strsplit(word, "'")
+      nt_contractions <- c("couldn" = "could", "shouldn" = "should", "wouldn" = "would", "didn" = "did", "wasn" = "was")
+      if(parts[[1]] %in% nt_contractions) {
+        is_nt_contraction = 1
+        cont_stem <- nt_contractions[word]
+      }
+      cont_suffix <- parts[[2]]
+    }
+    
     row <- which(tibbletest[,1] == word)
     if(!identical(toString(tibbletest[row, 2]),"character(0)")){  # omit words not found in word_db
       foundInDB_tscript <- append(foundInDB_tscript, toString(tibbletest[row, 1]))
-      phonetic_tscript <- append(phonetic_tscript, toString(tibbletest[row, 2]))
-      phonetic_plain_tscript <- append(phonetic_plain_tscript, toString(tibbletest[row,3]))
+      klatt = toString(tibbletest[row, 2])
+      bare_klatt = toString(tibbletest[row,3])
+      if(is_nt_contraction == 1) {
+        klatt <- paste(klatt, "N", sep="") # Replace the N in nt contractions 
+        bare_klatt <- paste(bare_klatt, "N", sep="")
+        is_nt_contraction = 0  # reset the flag
+      }
+      phonetic_tscript <- append(phonetic_tscript, klatt)
+      phonetic_plain_tscript <- append(phonetic_plain_tscript, bare_klatt)
       wf_tscript <- append(wf_tscript, toString(tibbletest[row, 4]))
     }
+    
+    # If we have any contraction stem 
+    if(i <= length(text_df)-1) {  # if there is a next element 
+      if(toString(text_df[i+1, 1]) %in% c("s", "d", "t","ve", "ll")) {  # if the next element is contraction suffix 
+        is_contraction = 1
+        contraction = text_df[i+1, 1]
+        rescueContraction(contraction, foundInDB_tscript, phonetic_tscript, phonetic_plain_tscript)
+      }
+    }
+    
+    
   }
 
   # transform the vectors into data frames
