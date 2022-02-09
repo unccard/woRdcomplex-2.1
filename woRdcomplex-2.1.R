@@ -12,7 +12,7 @@ library(dplyr)
 library(qdap, include.only=c("automated_readability_index", "coleman_liau", "flesch_kincaid"))  # readability functions 
 source("functions.R")
 
-word_db <- read.csv('UNCWordDB-2021-10-08.csv', na.strings=c("", "NA"))
+word_db <- read.csv('UNCWordDB-2022-02-07.csv', na.strings=c("", "NA"))
 tibbletest <-tibble(word_db$Word, word_db$KlatteseSyll, word_db$KlatteseBare, word_db$Zipf.value)  # isolate categories from word_db 
 
 # TO DO: fill in arguments of data.path with path to directory containing .txt files, leaving first argument blank 
