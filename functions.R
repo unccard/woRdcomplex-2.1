@@ -38,9 +38,12 @@ rescueContraction <- function(contraction, foundInDB_tscript, phonetic_tscript, 
   isVoiced <- 1
   engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
   
-  word <- foundInDB_tscript[nrow(foundInDB_tscript), 1]  # the contraction stem 
-  base <- phonetic_tscript[nrow(phonetic_tscript), 1]  # base in klattese
-  bare_base <- phonetic_plain_tscript[nrow(phonetic_plain_tscript), 1]  # bare base in klattese 
+  word <- foundInDB_tscript[length(foundInDB_tscript)]  # the contraction stem 
+  base <- phonetic_tscript[length(phonetic_tscript)]  # base in klattese
+  bare_base <- phonetic_plain_tscript[length(phonetic_plain_tscript)]  # bare base in klattese 
+  print(word)
+  print(base)
+  
   final_phoneme <- substr(base, str_length(base), str_length(base))  # last sound in base
   if(final_phoneme %in% engl_voiceless_cons) isVoiced <- 0
   
@@ -62,11 +65,19 @@ rescueContraction <- function(contraction, foundInDB_tscript, phonetic_tscript, 
     word <- paste(word, "'t", sep="")
     base <- paste(base, "t", sep="")
     bare_base <- paste(bare_base, "t", sep="")
+  } else if(contraction == "m") {
+    word <- paste(word, "'m", sep="")
+    base <- paste(base, "m", sep="")
+    bare_base <- paste(bare_base, "m", sep="")
   } else if(contraction == "ve") {
     word <- paste(word, "'ve", sep="")
     base <- paste(base, "v", sep="")
     bare_base <- paste(bare_base, "v", sep="")
-  } 
+  } else if(contraction == "re") {
+    word <- paste(word, "'re", sep="")
+    base <- paste(base, "X", sep="")
+    bare_base <- paste(bare_base, "X", sep="")
+  }
   else {  # contraction is "ll"
     word <- paste(word, "'ll", sep="")
     base <- paste(base, "L", sep="")  
@@ -74,9 +85,9 @@ rescueContraction <- function(contraction, foundInDB_tscript, phonetic_tscript, 
   }
   
   # Replace the values in transcripts with rescued contractions
-  foundInDB_tscript[nrow(foundInDB_tscript), 1] <- word
-  phonetic_tscript[nrow(phonetic_tscript), 1] <- base
-  phonetic_plain_tscript[nrow(phonetic_plain_tscript), 1] <- bare_base
+  foundInDB_tscript[length(foundInDB_tscript)] <- word
+  phonetic_tscript[length(phonetic_tscript)] <- base
+  phonetic_plain_tscript[length(phonetic_plain_tscript)] <- bare_base
 }
 
 calculateWCM <- function(klattese) {  # calculate WCM score for the word 

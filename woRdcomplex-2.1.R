@@ -49,7 +49,7 @@ for (file in 1:length(files)){
   # convert sample format to analyze phonological complexity
   text_df<- convertToDF(sample)
   is_contraction <- is_nt_contraction <- 0
-  cont_stem <- cont_suffix <- ""
+  contraction <- ""
   
   # initialize vectors that will be populated with data for each word in sample
   foundInDB_tscript <- phonetic_tscript <- phonetic_plain_tscript <- wf_tscript <- c()
@@ -57,26 +57,19 @@ for (file in 1:length(files)){
   # populate vectors with data for each word in the transcript
   for(i in 1:nrow(text_df)) {
     word <- toString(text_df[i,1])
-    print(word)
-    
-    # if we have a contracted suffix such as "t" 
-    if(is_contraction == 1) {
-      is_contraction = 0  # reset the flag
-      next  # skip the contraction 
-    }
     
     # if word contains apostrophe, then it is a contraction 
     if(grepl("'", word, fixed=TRUE)) {
       is_contraction = 1
       parts = strsplit(word, "'")
-      nt_contractions <- c("couldn" = "could", "shouldn" = "should", "wouldn" = "would", "didn" = "did", "wasn" = "was")
-      if(parts[[1]] %in% nt_contractions) {
+      #TODO: don't is gonna come out weird bc it looks like do so might have to make a special case for the Klattese - will not affect wcm but just looks weird
+      nt_contractions <- c("couldn", "shouldn", "wouldn", "didn", "don", "doesn", "wasn", "aren")
+      if(parts[[1]][1] %in% nt_contractions) {
         is_nt_contraction = 1
-        cont_stem <- nt_contractions[word]
+        word <- substr(parts[[1]][1], 1, nchar(parts[[1]][1])-1)
       }
-      cont_suffix <- parts[[2]]
+      contraction <- parts[[1]][2]
     }
-    
     row <- which(tibbletest[,1] == word)
     if(!identical(toString(tibbletest[row, 2]),"character(0)")){  # omit words not found in word_db
       foundInDB_tscript <- append(foundInDB_tscript, toString(tibbletest[row, 1]))
@@ -93,19 +86,18 @@ for (file in 1:length(files)){
     }
     
     # If we have any contraction stem 
-    if(i <= length(text_df)-1) {  # if there is a next element 
-      if(toString(text_df[i+1, 1]) %in% c("s", "d", "t","ve", "ll")) {  # if the next element is contraction suffix 
-        is_contraction = 1
-        contraction = text_df[i+1, 1]
-        rescueContraction(contraction, foundInDB_tscript, phonetic_tscript, phonetic_plain_tscript)
-      }
+    if(is_contraction == 1) {  # if there is a next element 
+      print(foundInDB_tscript)
+      print(contraction)
+      rescueContraction(contraction, foundInDB_tscript, phonetic_tscript, phonetic_plain_tscript)
+      is_contraction = 0  # reset the flag 
     }
-    
     
   }
 
   # transform the vectors into data frames
   foundInDB_tscript<-as.data.frame(foundInDB_tscript)
+  print(foundInDB_tscript)
   phonetic_tscript<-as.data.frame(phonetic_tscript)
   phonetic_plain_tscript<-as.data.frame(phonetic_plain_tscript)
   wf_tscript<-as.data.frame(wf_tscript)
