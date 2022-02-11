@@ -72,25 +72,26 @@ for (file in 1:length(files)){
     }
     row <- which(tibbletest[,1] == word)
     if(!identical(toString(tibbletest[row, 2]),"character(0)")){  # omit words not found in word_db
-      foundInDB_tscript <- append(foundInDB_tscript, toString(tibbletest[row, 1]))
       klatt = toString(tibbletest[row, 2])
       bare_klatt = toString(tibbletest[row,3])
       if(is_nt_contraction == 1) {
+        word <- paste(word, "n", sep="")  # Replace n to end of root word
         klatt <- paste(klatt, "N", sep="") # Replace the N in nt contractions 
         bare_klatt <- paste(bare_klatt, "N", sep="")
         is_nt_contraction = 0  # reset the flag
       }
-      phonetic_tscript <- append(phonetic_tscript, klatt)
-      phonetic_plain_tscript <- append(phonetic_plain_tscript, bare_klatt)
-      wf_tscript <- append(wf_tscript, toString(tibbletest[row, 4]))
-    }
-    
-    # If we have any contraction stem 
-    if(is_contraction == 1) {  # if there is a next element 
-      print(foundInDB_tscript)
-      print(contraction)
-      rescueContraction(contraction, foundInDB_tscript, phonetic_tscript, phonetic_plain_tscript)
-      is_contraction = 0  # reset the flag 
+      if(is_contraction == 1) {
+        is_contraction = 0  # reset the flag 
+        formatted <- rescueContraction(contraction, word, klatt, bare_klatt)  # Add back contractions
+        foundInDB_tscript <- append(foundInDB_tscript, formatted[[1]])
+        phonetic_tscript <- append(phonetic_tscript, formatted[[2]])
+        phonetic_plain_tscript <- append(phonetic_plain_tscript, formatted[[3]])
+      } else {
+        foundInDB_tscript <- append(foundInDB_tscript, word)
+        phonetic_tscript <- append(phonetic_tscript, klatt)
+        phonetic_plain_tscript <- append(phonetic_plain_tscript, bare_klatt)
+      }
+      wf_tscript <- append(wf_tscript, toString(tibbletest[row, 4]))  # WF is independent of contraction status
     }
     
   }

@@ -34,60 +34,49 @@ convertToDF <- function(sample){
   return(text_df)
 }
 
-rescueContraction <- function(contraction, foundInDB_tscript, phonetic_tscript, phonetic_plain_tscript) {  # format contractions for display in output file
-  isVoiced <- 1
+rescueContraction <- function(contraction, word, klatt, bare_klatt) {  # format contractions for display in output file
+
   engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
-  
-  word <- foundInDB_tscript[length(foundInDB_tscript)]  # the contraction stem 
-  base <- phonetic_tscript[length(phonetic_tscript)]  # base in klattese
-  bare_base <- phonetic_plain_tscript[length(phonetic_plain_tscript)]  # bare base in klattese 
-  print(word)
-  print(base)
-  
-  final_phoneme <- substr(base, str_length(base), str_length(base))  # last sound in base
-  if(final_phoneme %in% engl_voiceless_cons) isVoiced <- 0
+  final_phoneme <- substr(klatt, str_length(klatt), str_length(klatt))  # last sound in klatt before contraction
   
   # add the correct pronunciation of the contraction to the klattese, and format english 
   if(contraction == "s") {
     word <- paste(word, "'s", sep="")
-    if(isVoiced == 1) {
-      base <- paste(base, "z", sep="")
-      bare_base <- paste(bare_base, "z", sep="")
+    if(!(final_phoneme %in% engl_voiceless_cons)) {  # If prior sound voiced, the 's contraction becomes voiced
+      klatt <- paste(klatt, "z", sep="")
+      bare_klatt <- paste(bare_klatt, "z", sep="")
     } else {
-      base <- paste(base, "s", sep = "")
-      bare_base <- paste(bare_base, "s", sep="")
+      klatt <- paste(klatt, "s", sep = "")
+      bare_klatt <- paste(bare_klatt, "s", sep="")
     }
   } else if(contraction == "d") {
     word <- paste(word, "'d", sep="")
-    base <- paste(base, "d", sep="")
-    bare_base <- paste(bare_base, "d", sep="")
+    klatt <- paste(klatt, "d", sep="")
+    bare_klatt <- paste(bare_klatt, "d", sep="")
   } else if(contraction == "t") {
     word <- paste(word, "'t", sep="")
-    base <- paste(base, "t", sep="")
-    bare_base <- paste(bare_base, "t", sep="")
+    klatt <- paste(klatt, "t", sep="")
+    bare_klatt <- paste(bare_klatt, "t", sep="")
   } else if(contraction == "m") {
     word <- paste(word, "'m", sep="")
-    base <- paste(base, "m", sep="")
-    bare_base <- paste(bare_base, "m", sep="")
+    klatt <- paste(klatt, "m", sep="")
+    bare_klatt <- paste(bare_klatt, "m", sep="")
   } else if(contraction == "ve") {
     word <- paste(word, "'ve", sep="")
-    base <- paste(base, "v", sep="")
-    bare_base <- paste(bare_base, "v", sep="")
+    klatt <- paste(klatt, "v", sep="")
+    bare_klatt <- paste(bare_klatt, "v", sep="")
   } else if(contraction == "re") {
     word <- paste(word, "'re", sep="")
-    base <- paste(base, "X", sep="")
-    bare_base <- paste(bare_base, "X", sep="")
+    klatt <- paste(klatt, "X", sep="")
+    bare_klatt <- paste(bare_klatt, "X", sep="")
   }
   else {  # contraction is "ll"
     word <- paste(word, "'ll", sep="")
-    base <- paste(base, "L", sep="")  
-    bare_base <- paste(bare_base, "L", sep="")
+    klatt <- paste(klatt, "L", sep="")  
+    bare_klatt <- paste(bare_klatt, "L", sep="")
   }
   
-  # Replace the values in transcripts with rescued contractions
-  foundInDB_tscript[length(foundInDB_tscript)] <- word
-  phonetic_tscript[length(phonetic_tscript)] <- base
-  phonetic_plain_tscript[length(phonetic_plain_tscript)] <- bare_base
+  return(c(word, klatt, bare_klatt))
 }
 
 calculateWCM <- function(klattese) {  # calculate WCM score for the word 
