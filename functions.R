@@ -34,15 +34,18 @@ convertToDF <- function(sample){
   return(text_df)
 }
 
+final_phoneme <- function(word) {
+  return(substr(word, str_length(word), str_length(word)))
+}
+
 rescueContraction <- function(contraction, word, klatt, bare_klatt) {  # format contractions for display in output file
 
   engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
-  final_phoneme <- substr(klatt, str_length(klatt), str_length(klatt))  # last sound in klatt before contraction
   
   # add the correct pronunciation of the contraction to the klattese, and format english 
   if(contraction == "s") {
     word <- paste(word, "'s", sep="")
-    if(!(final_phoneme %in% engl_voiceless_cons)) {  # If prior sound voiced, the 's contraction becomes voiced
+    if(!(final_phoneme(klatt) %in% engl_voiceless_cons)) {  # If prior sound voiced, the 's contraction becomes voiced
       klatt <- paste(klatt, "z", sep="")
       bare_klatt <- paste(bare_klatt, "z", sep="")
     } else {
@@ -95,7 +98,7 @@ calculateWCM <- function(klattese) {  # calculate WCM score for the word
   
   # if the word ends in a consonant 
   len <- str_length(klattese)
-  final_phoneme <- substr(klattese, len, len)
+  final_phoneme <- final_phoneme(klattese)
   if (final_phoneme %in% engl_voiced_cons | final_phoneme %in% engl_voiceless_cons | final_phoneme %in% engl_syll_cons) { 
     phon_points=phon_points+1  # syllable structures (1)
   } 

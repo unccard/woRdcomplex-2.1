@@ -77,7 +77,7 @@ for (file in 1:length(files)){
     bare_klatt = toString(tibbletest[row,3])
     if(is_nt_contraction == 1) {
       word <- paste(word, "n", sep="")  # Replace n to end of root word
-      if(is_dont) {
+      if(is_dont == 1) {
         klatt <- "doˈn"
         bare_klatt <- "don"
       } else {
