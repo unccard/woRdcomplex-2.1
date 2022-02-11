@@ -57,13 +57,16 @@ for (file in 1:length(files)){
   # populate vectors with data for each word in the transcript
   for(i in 1:nrow(text_df)) {
     word <- toString(text_df[i,1])
+    is_dont <- 0 
     
     # if word contains apostrophe, then it is a contraction 
     if(grepl("'", word, fixed=TRUE)) {
       is_contraction = 1
       parts = strsplit(word, "'")
-      #TODO: don't is gonna come out weird bc it looks like do so might have to make a special case for the Klattese - will not affect wcm but just looks weird
-      if(grepl("n't", word, fixed=TRUE) && word != "can't") { # nt contractions other than can't
+      if(word == "don't") {  # special case because don't is pronounced different than do 
+        is_dont <- is_nt_contraction <- 1
+        word <- "do"
+      } else if (grepl("n't", word, fixed=TRUE) && word != "can't") { # nt contractions other than can't
         is_nt_contraction = 1
         word <- substr(parts[[1]][1], 1, nchar(parts[[1]][1])-1)
       } else word <- parts[[1]][1]
@@ -74,8 +77,13 @@ for (file in 1:length(files)){
     bare_klatt = toString(tibbletest[row,3])
     if(is_nt_contraction == 1) {
       word <- paste(word, "n", sep="")  # Replace n to end of root word
-      klatt <- paste(klatt, "N", sep="") # Replace the N in nt contractions 
-      bare_klatt <- paste(bare_klatt, "N", sep="")
+      if(is_dont) {
+        klatt <- "doˈn"
+        bare_klatt <- "don"
+      } else {
+        klatt <- paste(klatt, "N", sep="") # Replace the N in nt contractions 
+        bare_klatt <- paste(bare_klatt, "N", sep="")
+      }
       is_nt_contraction = 0  # reset the flag
     }
     if(is_contraction == 1) {
