@@ -63,37 +63,33 @@ for (file in 1:length(files)){
       is_contraction = 1
       parts = strsplit(word, "'")
       #TODO: don't is gonna come out weird bc it looks like do so might have to make a special case for the Klattese - will not affect wcm but just looks weird
-      nt_contractions <- c("couldn", "shouldn", "wouldn", "didn", "don", "doesn", "wasn", "aren")
-      if(parts[[1]][1] %in% nt_contractions) {
+      if(grepl("n't", word, fixed=TRUE) && word != "can't") { # nt contractions other than can't
         is_nt_contraction = 1
         word <- substr(parts[[1]][1], 1, nchar(parts[[1]][1])-1)
-      }
+      } else word <- parts[[1]][1]
       contraction <- parts[[1]][2]
     }
     row <- which(tibbletest[,1] == word)
-    if(!identical(toString(tibbletest[row, 2]),"character(0)")){  # omit words not found in word_db
-      klatt = toString(tibbletest[row, 2])
-      bare_klatt = toString(tibbletest[row,3])
-      if(is_nt_contraction == 1) {
-        word <- paste(word, "n", sep="")  # Replace n to end of root word
-        klatt <- paste(klatt, "N", sep="") # Replace the N in nt contractions 
-        bare_klatt <- paste(bare_klatt, "N", sep="")
-        is_nt_contraction = 0  # reset the flag
-      }
-      if(is_contraction == 1) {
-        is_contraction = 0  # reset the flag 
-        formatted <- rescueContraction(contraction, word, klatt, bare_klatt)  # Add back contractions
-        foundInDB_tscript <- append(foundInDB_tscript, formatted[[1]])
-        phonetic_tscript <- append(phonetic_tscript, formatted[[2]])
-        phonetic_plain_tscript <- append(phonetic_plain_tscript, formatted[[3]])
-      } else {
-        foundInDB_tscript <- append(foundInDB_tscript, word)
-        phonetic_tscript <- append(phonetic_tscript, klatt)
-        phonetic_plain_tscript <- append(phonetic_plain_tscript, bare_klatt)
-      }
-      wf_tscript <- append(wf_tscript, toString(tibbletest[row, 4]))  # WF is independent of contraction status
+    klatt = toString(tibbletest[row, 2])
+    bare_klatt = toString(tibbletest[row,3])
+    if(is_nt_contraction == 1) {
+      word <- paste(word, "n", sep="")  # Replace n to end of root word
+      klatt <- paste(klatt, "N", sep="") # Replace the N in nt contractions 
+      bare_klatt <- paste(bare_klatt, "N", sep="")
+      is_nt_contraction = 0  # reset the flag
     }
-    
+    if(is_contraction == 1) {
+      is_contraction = 0  # reset the flag 
+      formatted <- rescueContraction(contraction, word, klatt, bare_klatt)  # Add back contractions
+      foundInDB_tscript <- append(foundInDB_tscript, formatted[[1]])
+      phonetic_tscript <- append(phonetic_tscript, formatted[[2]])
+      phonetic_plain_tscript <- append(phonetic_plain_tscript, formatted[[3]])
+    } else {
+      foundInDB_tscript <- append(foundInDB_tscript, word)
+      phonetic_tscript <- append(phonetic_tscript, klatt)
+      phonetic_plain_tscript <- append(phonetic_plain_tscript, bare_klatt)
+    }
+    wf_tscript <- append(wf_tscript, toString(tibbletest[row, 4]))  # WF is independent of contraction status
   }
 
   # transform the vectors into data frames
