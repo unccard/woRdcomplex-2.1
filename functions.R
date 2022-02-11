@@ -70,7 +70,7 @@ rescueContraction <- function(contraction, word, klatt, bare_klatt) {  # format 
     klatt <- paste(klatt, "X", sep="")
     bare_klatt <- paste(bare_klatt, "X", sep="")
   }
-  else {  # contraction is "ll"
+  else {  # the contraction is "ll"
     word <- paste(word, "'ll", sep="")
     klatt <- paste(klatt, "L", sep="")  
     bare_klatt <- paste(bare_klatt, "L", sep="")
