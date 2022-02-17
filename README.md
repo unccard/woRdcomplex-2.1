@@ -7,6 +7,13 @@ A Shiny app is also available at https://github.com/unccard/woRdcomplex-2.1 or h
 
 Word Complexity Measure (WCM) is calculated as described in Stoel-Gammon (2010), based on lookup from a database including standard syllabified transcriptions for American English (cmudict.0.6d.syl; Bartlett et al., 2009) and word frequency measures from the SUBTLEX-US dictionary (Brysbaert & New, 2009). Word frequencies are displayed in Zipf units (van Heuven et al 2014), a logarithmic scale defined as log10(word frequency in words per billion), with distribution from approximately 1 (very low frequency) to 7 (high frequency function words, articles, etc.).
 
+An applied example of this work is found at the following link: https://go.unc.edu/j6JRz
+
+Jacks, A., Richardson, J.D., Greene, L.G., & Haley, K.L. (2022, February). Phonetic word complexity in narratives produced 
+by people with AOS of varying etiology. Poster presented at: 21st Biennial Conference on Motor Speech, 2022 February; Charleston, SC.
+
+References:
+
 Bartlett, S., Kondrak, G., & Cherry, C. (2009, June). On the syllabification of phonemes. In Proceedings of human language technologies: The 2009 annual conference of the north american chapter of the association for computational linguistics (pp. 308-316).
 
 Brysbaert, M., & New, B. (2009). Moving beyond Kučera and Francis: A critical evaluation of current word frequency norms and the introduction of a new and improved word frequency measure for American English. Behavior research methods, 41(4), 977-990.
