@@ -34,52 +34,60 @@ convertToDF <- function(sample){
   return(text_df)
 }
 
-final_phoneme <- function(word) {
-  return(substr(word, str_length(word), str_length(word)))
-}
-
-rescueContraction <- function(contraction, word, klatt, bare_klatt) {  # format contractions for display in output file
-
+rescueContraction <- function(contraction, foundInDB_tscript, phonetic_tscript, phonetic_plain_tscript) {  # format contractions for display in output file
+  isVoiced <- 1
   engl_voiceless_cons <- c("C","f","h","k","p","s","S","t","T")
+  
+  word <- foundInDB_tscript[length(foundInDB_tscript)]  # the contraction stem 
+  base <- phonetic_tscript[length(phonetic_tscript)]  # base in klattese
+  bare_base <- phonetic_plain_tscript[length(phonetic_plain_tscript)]  # bare base in klattese 
+  print(word)
+  print(base)
+  
+  final_phoneme <- substr(base, str_length(base), str_length(base))  # last sound in base
+  if(final_phoneme %in% engl_voiceless_cons) {isVoiced <- 0}
   
   # add the correct pronunciation of the contraction to the klattese, and format english 
   if(contraction == "s") {
     word <- paste(word, "'s", sep="")
-    if(!(final_phoneme(klatt) %in% engl_voiceless_cons)) {  # If prior sound voiced, the 's contraction becomes voiced
-      klatt <- paste(klatt, "z", sep="")
-      bare_klatt <- paste(bare_klatt, "z", sep="")
+    if(isVoiced == 1) {
+      base <- paste(base, "z", sep="")
+      bare_base <- paste(bare_base, "z", sep="")
     } else {
-      klatt <- paste(klatt, "s", sep = "")
-      bare_klatt <- paste(bare_klatt, "s", sep="")
+      base <- paste(base, "s", sep = "")
+      bare_base <- paste(bare_base, "s", sep="")
     }
   } else if(contraction == "d") {
     word <- paste(word, "'d", sep="")
-    klatt <- paste(klatt, "d", sep="")
-    bare_klatt <- paste(bare_klatt, "d", sep="")
+    base <- paste(base, "d", sep="")
+    bare_base <- paste(bare_base, "d", sep="")
   } else if(contraction == "t") {
     word <- paste(word, "'t", sep="")
-    klatt <- paste(klatt, "t", sep="")
-    bare_klatt <- paste(bare_klatt, "t", sep="")
+    base <- paste(base, "t", sep="")
+    bare_base <- paste(bare_base, "t", sep="")
   } else if(contraction == "m") {
     word <- paste(word, "'m", sep="")
-    klatt <- paste(klatt, "m", sep="")
-    bare_klatt <- paste(bare_klatt, "m", sep="")
+    base <- paste(base, "m", sep="")
+    bare_base <- paste(bare_base, "m", sep="")
   } else if(contraction == "ve") {
     word <- paste(word, "'ve", sep="")
-    klatt <- paste(klatt, "v", sep="")
-    bare_klatt <- paste(bare_klatt, "v", sep="")
+    base <- paste(base, "v", sep="")
+    bare_base <- paste(bare_base, "v", sep="")
   } else if(contraction == "re") {
     word <- paste(word, "'re", sep="")
-    klatt <- paste(klatt, "X", sep="")
-    bare_klatt <- paste(bare_klatt, "X", sep="")
-  }
-  else {  # the contraction is "ll"
+    base <- paste(base, "X", sep="")
+    bare_base <- paste(bare_base, "X", sep="")
+  } else  # contraction is "ll"
+    {
     word <- paste(word, "'ll", sep="")
-    klatt <- paste(klatt, "L", sep="")  
-    bare_klatt <- paste(bare_klatt, "L", sep="")
-  }
+    base <- paste(base, "L", sep="")  
+    bare_base <- paste(bare_base, "L", sep="")
+}
   
-  return(c(word, klatt, bare_klatt))
+  # Replace the values in transcripts with rescued contractions
+  foundInDB_tscript[length(foundInDB_tscript)] <- word
+  phonetic_tscript[length(phonetic_tscript)] <- base
+  phonetic_plain_tscript[length(phonetic_plain_tscript)] <- bare_base
 }
 
 calculateWCM <- function(klattese) {  # calculate WCM score for the word 
@@ -98,13 +106,13 @@ calculateWCM <- function(klattese) {  # calculate WCM score for the word
   
   # if the word ends in a consonant 
   len <- str_length(klattese)
-  final_phoneme <- final_phoneme(klattese)
+  final_phoneme <- substr(klattese, len, len)
   if (final_phoneme %in% engl_voiced_cons | final_phoneme %in% engl_voiceless_cons | final_phoneme %in% engl_syll_cons) { 
     phon_points=phon_points+1  # syllable structures (1)
   } 
   
   # if the word has consonant clusters 
-  split <- strsplit(klattese, "([iIEe@aWY^cOoUuRx|XLMNR\\ˈ]+|-+)+")  # regular expression to isolate consonants 
+  split <- strsplit(klattese, "([iIEe@aWY^cOoUuRx|XLMNR\\ˈˌ]+|-+)+")  # regular expression to isolate consonants 
   for(i in 1:length(split[[1]])) {
     if(str_length(split[[1]][i]) > 1) { 
       phon_points = phon_points + 1  # syllable structures (2)

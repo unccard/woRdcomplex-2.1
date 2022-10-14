@@ -9,6 +9,7 @@ library(tidyr)
 library(tidytext)
 library(stringr)
 library(dplyr)
+library(rJava)
 library(qdap, include.only=c("automated_readability_index", "coleman_liau", "flesch_kincaid"))  # readability functions 
 source("functions.R")
 
@@ -17,7 +18,13 @@ tibbletest <-tibble(word_db$Word, word_db$KlatteseSyll, word_db$KlatteseBare, wo
 
 # TO DO: fill in arguments of data.path with path to directory containing .txt files, leaving first argument blank 
 # for example: /Users/folder1/folder2 -> data_path("", "Users", "folder1", "folder2")
-data_path <- file.path("", "Users", "lindsaygreene", "Desktop", "temp")
+#data_path <- file.path("", "Users", "lindsaygreene", "Desktop", "temp")
+
+#data_path <- "/Users/jacksa/Library/CloudStorage/OneDrive-UniversityofNorthCarolinaatChapelHill/Documents - CARD/Cinderella/Transcripts/ABControlTranscripts"
+#data_path <- "/Users/jacksa/Library/CloudStorage/OneDrive-UniversityofNorthCarolinaatChapelHill/Documents - CARD/Cinderella/Transcripts/StrokeTranscripts/ReviewedUpdatedPreTxCinderellas/test"
+#data_path <- "/Users/jacksa/Library/CloudStorage/OneDrive-UniversityofNorthCarolinaatChapelHill/Documents - CARD/Cinderella/Transcripts/PPA cinderella transcripts UNM"
+data_path <- "/Users/jacksa/Documents/github/woRdcomplex-2.1"
+
 files <- list.files(path=data_path, pattern="*.txt")
 
 # create data frames to store results 
@@ -57,47 +64,49 @@ for (file in 1:length(files)){
   # populate vectors with data for each word in the transcript
   for(i in 1:nrow(text_df)) {
     word <- toString(text_df[i,1])
-    is_dont <- 0 
     
     # if word contains apostrophe, then it is a contraction 
     if(grepl("'", word, fixed=TRUE)) {
       is_contraction = 1
       parts = strsplit(word, "'")
-      if(word == "don't") {  # special case because don't is pronounced different than do 
-        is_dont <- is_nt_contraction <- 1
-        word <- "do"
-      } else if (grepl("n't", word, fixed=TRUE) && word != "can't") { # nt contractions other than can't
+      #TODO: don't is gonna come out weird bc it looks like do so might have to make a special case for the Klattese - will not affect wcm but just looks weird
+      nt_contractions <- c("couldn", "shouldn", "wouldn", "didn", "don", "doesn", "wasn", "aren")
+ 
+      # I think when Lindsay created the 'nt contraction fix, there is not a definition of "word" for regular contractions, so AJ added this
+      word <- parts[[1]][1]
+      contraction <- parts[[1]][2]
+      
+        if(parts[[1]][1] %in% nt_contractions) {
         is_nt_contraction = 1
         word <- substr(parts[[1]][1], 1, nchar(parts[[1]][1])-1)
-      } else word <- parts[[1]][1]
-      contraction <- parts[[1]][2]
+      }
+ 
     }
     row <- which(tibbletest[,1] == word)
-    klatt = toString(tibbletest[row, 2])
-    bare_klatt = toString(tibbletest[row,3])
-    if(is_nt_contraction == 1) {
-      word <- paste(word, "n", sep="")  # Replace n to end of root word
-      if(is_dont == 1) {
-        klatt <- "doˈn"
-        bare_klatt <- "don"
-      } else {
+    if(!identical(toString(tibbletest[row, 2]),"character(0)")){  # omit words not found in word_db
+      foundInDB_tscript <- append(foundInDB_tscript, toString(tibbletest[row, 1]))
+      klatt = toString(tibbletest[row, 2])
+      bare_klatt = toString(tibbletest[row,3])
+      if(is_nt_contraction == 1) {
         klatt <- paste(klatt, "N", sep="") # Replace the N in nt contractions 
         bare_klatt <- paste(bare_klatt, "N", sep="")
+        word <- paste(word,"n",sep="")
+        is_nt_contraction = 0  # reset the flag
       }
-      is_nt_contraction = 0  # reset the flag
-    }
-    if(is_contraction == 1) {
-      is_contraction = 0  # reset the flag 
-      formatted <- rescueContraction(contraction, word, klatt, bare_klatt)  # Add back contractions
-      foundInDB_tscript <- append(foundInDB_tscript, formatted[[1]])
-      phonetic_tscript <- append(phonetic_tscript, formatted[[2]])
-      phonetic_plain_tscript <- append(phonetic_plain_tscript, formatted[[3]])
-    } else {
-      foundInDB_tscript <- append(foundInDB_tscript, word)
       phonetic_tscript <- append(phonetic_tscript, klatt)
       phonetic_plain_tscript <- append(phonetic_plain_tscript, bare_klatt)
+      wf_tscript <- append(wf_tscript, toString(tibbletest[row, 4]))
     }
-    wf_tscript <- append(wf_tscript, toString(tibbletest[row, 4]))  # WF is independent of contraction status
+    
+    # If we have any contraction stem 
+    if(is_contraction == 1) {  # if there is a next element 
+      print(foundInDB_tscript)
+      print(contraction)
+      rescueContraction(contraction, foundInDB_tscript, phonetic_tscript, phonetic_plain_tscript)
+
+            is_contraction = 0  # reset the flag 
+    }
+    
   }
 
   # transform the vectors into data frames
