@@ -1,6 +1,6 @@
 createAverageDF <- function() {
-  data <- data.frame(matrix(vector(), ncol=4, nrow=length(files)))  # data frame to store avg output  
-  header_names <- list("Total_Words_in_Tscript", "Total_Words_Found_in_DB","Avg_WCM_Score","Avg_WF_Score")  # column headers for avg output df 
+  data <- data.frame(matrix(vector(), ncol=6, nrow=length(files)))  # data frame to store avg output  
+  header_names <- list("Total_Words_in_Tscript", "Total_Words_Found_in_DB","Avg_WCM_Score","Avg_WF_Score", "WIM", "MATTR")  # column headers for avg output df 
   colnames(data) <- header_names
   rownames(data) <- files
   return(data)
