@@ -1,6 +1,9 @@
-# woRdcomplex version 2.1 (22 September 2021)--an R software script for
-# automated phonetic transcription analysis by Lindsay Greene, adapted from v1.1 by Kevin T. Cunningham. 
+# woRdcomplex version 3.1 (30 January 2023)--an R software script for text analysis, including
+# automated phonetic transcription analysis in v2.1 by Lindsay Greene, adapted from v1.1 by Kevin T. Cunningham. 
 # Copyright (C) 2021. Lindsay Greene
+# Modifications 30 January 2023 integrating code from Cunningham and Haley "WIM" which includes Shannon entropy 
+# and MATTR-5 metrics from connected speech input
+
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation. AMDG. 
 # Script calculates the edit distance ratio for intelligible words in a sample. 
 # Requires that the user specify a file path on line 19.  
@@ -10,8 +13,17 @@ library(tidytext)
 library(stringr)
 library(dplyr)
 library(rJava)
-library(qdap, include.only=c("automated_readability_index", "coleman_liau", "flesch_kincaid"))  # readability functions 
+library(qdap, include.only=c("diversity", "automated_readability_index", "coleman_liau", "flesch_kincaid"))  # readability functions 
 source("functions.R")
+
+# adding for the purpose of MATTR calculations
+
+#Simple script to calculate the moving-average type-token ratio for all text files in a directory. Outputs a single CSV file with filename 
+#  Michalke, M. (2018). koRpus: An R Package for Text Analysis (Version 0.11-5). Available from https://reaktanz.de/?c=hacking&s=koRpus
+library(koRpus)
+#Set language to English for koRpus. Please see package documentation for further information (?koRpus)
+set.kRp.env(lang="en")
+koRpus.lang.en::lang.support.en()
 
 word_db <- read.csv('UNCWordDB-2022-02-07.csv', na.strings=c("", "NA"))
 tibbletest <-tibble(word_db$Word, word_db$KlatteseSyll, word_db$KlatteseBare, word_db$Zipf.value)  # isolate categories from word_db 
@@ -23,7 +35,9 @@ tibbletest <-tibble(word_db$Word, word_db$KlatteseSyll, word_db$KlatteseBare, wo
 #data_path <- "/Users/jacksa/Library/CloudStorage/OneDrive-UniversityofNorthCarolinaatChapelHill/Documents - CARD/Cinderella/Transcripts/ABControlTranscripts"
 #data_path <- "/Users/jacksa/Library/CloudStorage/OneDrive-UniversityofNorthCarolinaatChapelHill/Documents - CARD/Cinderella/Transcripts/StrokeTranscripts/ReviewedUpdatedPreTxCinderellas/test"
 #data_path <- "/Users/jacksa/Library/CloudStorage/OneDrive-UniversityofNorthCarolinaatChapelHill/Documents - CARD/Cinderella/Transcripts/PPA cinderella transcripts UNM"
-data_path <- "/Users/jacksa/Documents/github/woRdcomplex-2.1"
+#data_path <- "/Users/jacksa/Documents/github/woRdcomplex-2.1"
+
+data_path <- "C:/Users/jacksa/OneDrive - University of North Carolina at Chapel Hill/Documents - CARD/General/Dementia/PittSelected/PittSelCont"
 
 files <- list.files(path=data_path, pattern="*.txt")
 
@@ -147,11 +161,25 @@ for (file in 1:length(files)){
   avg_phon <- phon_total/nrow(phonetic_tscript)
   avg_wf <- wf_total/nrow(wf_tscript)
 
+  # obtain Word Information Measure (WIM) from Shannon Entropy of qdap diversity function
+
+  divDF <- diversity(sample)
+  wim <- divDF$shannon
+
+  # get MATTR-5 using korpus package functions
+  
+  tokenized.obj <- tokenize(filePath, lang = "en") #using the tokenize function in koRpus
+  m <- MATTR(tokenized.obj, window = 5) #this is the analysis window, currently set to 5 words
+  m <- m@MATTR
+  m <-m$MATTR
+  
   # write output and file name to avg output data frame
   data[file,1] = nrow(text_df)
   data[file,2] = nrow(phonetic_tscript)
   data[file,3] = avg_phon
   data[file,4] = avg_wf
+  data[file,5] = wim
+  data[file,6] = m
 }
 
 # write output to file and save to same location to be opened in excel 
